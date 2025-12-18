@@ -1,41 +1,624 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Page</title>
+    <title>RPG v15: 듀얼 단검 & 사이보그</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            user-select: none;
+            overflow: hidden;
+        }
+        .top-bar {
+            width: 100%;
+            background-color: #1a252f;
+            padding: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: fixed;
+            top: 0;
+            z-index: 100;
         }
-        .container {
-            text-align: center;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
+        .res-coin { color: #f1c40f; }
+        .res-potion { color: #e056fd; }
+        .btn-small { background: #7f8c8d; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: white; font-size: 12px; }
+        .btn-mode { background: #16a085; border: 1px solid #1abc9c; }
+
+        .game-container {
+            margin-top: 60px;
+            background-color: #34495e;
+            width: 480px;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 2px solid #ecf0f1;
+            transition: transform 0.3s, margin-top 0.3s;
+            max-height: 90vh;
+            overflow-y: auto; 
+        }
+
+        .mode-mobile .game-container { transform: scale(1.15); margin-top: 100px; transform-origin: top center; }
+        .mode-pc .game-container { transform: scale(1.0); margin-top: 60px; }
+        
+        h2 { margin: 0 0 5px 0; color: #ecf0f1; border-bottom: 2px solid #7f8c8d; padding-bottom: 5px; font-size: 18px;}
+        .screen { display: none; }
+        .active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .equip-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 5px;
+        }
+        .equip-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #222;
+            padding: 5px;
             border-radius: 10px;
-            backdrop-filter: blur(10px);
+            border: 2px solid #7f8c8d;
+            width: 80px;
         }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+        .big-icon { font-size: 40px; margin: 2px 0; transition: transform 0.1s; }
+        .status { font-size: 12px; font-weight: bold; color: #bdc3c7; }
+        
+        .log-box {
+            background: #222;
+            color: #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 11px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            white-space: pre-line;
         }
-        p {
-            font-size: 1.2rem;
+
+        button {
+            padding: 8px;
+            font-size: 13px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 2px;
+            font-weight: bold;
+            width: 96%;
+            transition: 0.1s;
         }
+        button:active { transform: scale(0.96); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; background-color: #7f8c8d !important; }
+
+        .btn-enhance { background-color: #e67e22; color: white; }
+        .btn-gacha-w { background-color: #d35400; color: white; border: 2px solid #e67e22; }
+        .btn-gacha-a { background-color: #9b59b6; color: white; border: 2px solid #8e44ad; }
+        .btn-auto { background-color: #34495e; color: #ddd; border: 1px solid #7f8c8d; font-size: 11px; }
+        
+        .btn-forest { background-color: #27ae60; color: white; }
+        .btn-field { background-color: #c0392b; color: white; }
+        .btn-raid { background-color: #c0392b; color: white; border: 2px solid #e74c3c; }
+        .btn-reaper { background-color: #2c3e50; color: white; border: 2px solid #000; } 
+        .btn-dagger { background-color: #34495e; color: #f1c40f; border: 2px solid #f1c40f; } /* 듀얼단검 버튼 */
+
+        .btn-save { background-color: #2980b9; color: white; width: 48% !important; }
+        .btn-reset { background-color: #c0392b; color: white; width: 48% !important; }
+
+        .skill-container { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .btn-skill {
+            width: 32%; background-color: #34495e; border: 2px solid #f1c40f; color: #f1c40f;
+            font-size: 11px; position: relative; overflow: hidden; height: 35px;
+        }
+        .skill-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background-color: rgba(0,0,0,0.6); transition: height linear; }
+
+        .code-area { margin-top: 5px; border-top: 1px solid #7f8c8d; padding-top: 5px; }
+        .input-code { padding: 5px; border-radius: 4px; border: none; width: 60%; margin-right: 5px; }
+        .btn-code { background-color: #8e44ad; color: white; width: 30%; padding: 5px; font-size: 12px; }
+
+        .inventory-box {
+            background-color: #2c3e50; padding: 5px; border-radius: 8px; margin-top: 5px;
+            border: 1px dashed #95a5a6; max-height: 85px; overflow-y: auto;
+        }
+        .inv-title { font-size: 11px; margin-bottom: 3px; text-align: left; color: #ddd; }
+        .inv-grid { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; }
+        .inv-slot {
+            width: 40px; height: 40px; background-color: #34495e; border: 2px solid #555;
+            border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .inv-slot.selected { border-color: #2ecc71; background-color: #222; }
+        .inv-slot.locked { filter: grayscale(1); opacity: 0.3; cursor: not-allowed; }
+        .slot-icon { font-size: 16px; }
+        .slot-lv { font-size: 8px; color: #f1c40f; }
+
+        .bar-container { width: 90%; background: #555; height: 16px; border-radius: 10px; margin: 3px auto; overflow: hidden; position: relative;}
+        .hp-text { position: absolute; width: 100%; text-align: center; top: 0; font-size: 10px; line-height: 16px; text-shadow: 1px 1px 1px black; z-index: 2; }
+        .boss-hp-bar { width: 100%; height: 100%; background: #e74c3c; transition: width 0.2s; }
+        .player-hp-bar { width: 100%; height: 100%; background: #2ecc71; transition: width 0.2s; }
+
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🚀 Welcome!</h1>
-        <p>이것은 간단한 HTML 페이지입니다.</p>
-        <p>GitHub에 성공적으로 업로드되었습니다!</p>
+<body class="mode-pc">
+
+    <div class="top-bar">
+        <div class="res-coin">💰 <span id="coinDisplay">0</span></div>
+        <div class="res-potion">🧪 <span id="potionDisplay">0</span></div>
+        <button class="btn-small btn-mode" onclick="toggleMode()">💻 PC / 📱 모바일</button>
+        <button class="btn-small" onclick="manualSave()">💾 저장</button>
     </div>
+
+    <div class="game-container">
+        
+        <!-- 1. 마을 -->
+        <div id="townScreen" class="screen active">
+            <h2>🏰 마을 광장</h2>
+            
+            <div class="equip-container">
+                <div class="equip-slot">
+                    <div class="big-icon" id="townWeaponIcon">🗡️</div>
+                    <div class="status" id="weaponStatus">Lv.0</div>
+                </div>
+                <div class="equip-slot">
+                    <div class="big-icon" id="townArmorIcon">👕</div>
+                    <div class="status" id="armorStatus">맨몸</div>
+                </div>
+            </div>
+
+            <div class="log-box" id="townLog">Lv.100 사이보그 갑옷 추가!</div>
+
+            <!-- 무기 관리 -->
+            <div style="display: flex; justify-content: center; width: 100%;">
+                <button class="btn-enhance" style="width: 32%;" onclick="enhanceWeapon()">🔨 강화</button>
+                <button class="btn-gacha-w" style="width: 32%;" onclick="gachaWeapon()">🗡️ 무기뽑기</button>
+                <button class="btn-auto" style="width: 32%;" onclick="autoEnhance()">⚡ 연속강화</button>
+            </div>
+            <!-- 방어구 관리 -->
+            <div style="display: flex; justify-content: center; width: 100%; margin-top:2px;">
+                <button class="btn-gacha-a" style="width: 48%;" onclick="gachaArmor(false)">🛡️ 방어구 뽑기 (5000G)</button>
+                <button class="btn-auto" id="btnAutoArmor" style="width: 48%;" onclick="autoGachaArmor()">🔄 방어구 연속</button>
+            </div>
+            
+            <div style="display:flex; justify-content: space-between; margin-top:5px;">
+                <button class="btn-forest" style="width:32%" onclick="changeScreen('forestScreen')">🌲 숲</button>
+                <button class="btn-field" style="width:32%" onclick="goToField()">👹 사냥터</button>
+                <button class="btn-raid" style="width:32%" onclick="goToRaidSelect()">🔥 레이드</button>
+            </div>
+
+            <div style="display:flex; justify-content: center; margin-top:5px;">
+                <button class="btn-save" onclick="manualSave()">💾 저장</button>
+                <button class="btn-reset" onclick="resetGame()">🗑️ 초기화</button>
+            </div>
+
+            <!-- 인벤토리 영역 -->
+            <div class="inventory-box">
+                <div class="inv-title">🎒 무기 인벤토리</div>
+                <div class="inv-grid" id="weaponInventoryGrid"></div>
+            </div>
+            <div class="inventory-box">
+                <div class="inv-title">🛡️ 방어구 인벤토리</div>
+                <div class="inv-grid" id="armorInventoryGrid"></div>
+            </div>
+
+            <div class="code-area">
+                <input type="text" id="codeInput" class="input-code" placeholder="코드 입력">
+                <button class="btn-code" onclick="useCode()">입력</button>
+            </div>
+        </div>
+
+        <!-- 2. 레이드 선택 -->
+        <div id="raidSelectScreen" class="screen">
+            <h2>🔥 레이드 선택</h2>
+            <div class="log-box">도전할 보스를 선택하세요.</div>
+            <button class="btn-raid" onclick="startRaid('hell')">🔥 지옥의 파수꾼 (Easy)</button>
+            <button class="btn-reaper" onclick="startRaid('reaper')">💀 사신 (Hard)</button>
+            <button class="btn-dagger" onclick="startRaid('dagger')">⚔️ 듀얼 단검 (Extreme)</button>
+            <button class="btn-town" onclick="changeScreen('townScreen')">🔙 돌아가기</button>
+        </div>
+
+        <!-- 3. 숲 -->
+        <div id="forestScreen" class="screen">
+            <h2>🌲 신비한 숲</h2>
+            <div class="big-icon">🪓</div>
+            <div class="log-box" id="forestLog">나무를 캐서 돈을 버세요.</div>
+            <div id="cooldownBarContainer" style="width:90%; height:5px; background:#555; margin:5px auto; display:none;"><div id="cooldownBar" style="width:0%; height:100%; background:gold;"></div></div>
+            <button class="btn-forest" id="chopBtn" onclick="chopWood()">🪓 나무 베기</button>
+            <button class="btn-town" onclick="changeScreen('townScreen')">🏰 마을로 돌아가기</button>
+        </div>
+
+        <!-- 4. 사냥터 -->
+        <div id="fieldScreen" class="screen">
+            <h2>☠️ 위험한 사냥터</h2>
+            <div class="big-icon" id="monsterIcon">❓</div>
+            <div class="status" id="monsterInfo">탐색 중...</div>
+            <div class="log-box" id="battleLog">야생의 몬스터가 나타났다!</div>
+            <div class="skill-container" id="battleSkills"></div>
+            <button class="btn-field" id="attackBtn" onclick="attackMonster()">⚔️ 공격하기</button>
+            <button class="btn-field" id="nextMonsterBtn" onclick="spawnMonster()" style="display:none;">🔍 다음 몬스터</button>
+            <button class="btn-town" onclick="changeScreen('townScreen')">🏃 도망가기</button>
+        </div>
+
+        <!-- 5. 레이드 전투 -->
+        <div id="raidScreen" class="screen">
+            <h2 id="raidTitle">🔥 지옥의 레이드</h2>
+            <div class="big-icon" id="raidBossIcon">👿</div>
+            
+            <div style="font-size:12px; text-align:left; margin-left:20px;">👿 BOSS HP</div>
+            <div class="bar-container">
+                <div class="boss-hp-bar" id="raidHpBar"></div>
+                <div class="hp-text" id="raidHpText">10,000,000</div>
+            </div>
+
+            <div style="font-size:12px; text-align:left; margin-left:20px; margin-top:5px;">❤️ MY HP</div>
+            <div class="bar-container">
+                <div class="player-hp-bar" id="playerHpBar"></div>
+                <div class="hp-text" id="playerHpText">1000 / 1000</div>
+            </div>
+
+            <div class="log-box" id="raidLog">전투 시작!</div>
+            <div class="skill-container" id="raidSkills"></div>
+
+            <button class="btn-raid" onclick="attackRaidBoss()">🏹 보스 공격하기</button>
+            <button class="btn-potion" onclick="drinkPotion()">🧪 물약 (HP 회복)</button>
+            <button class="btn-town" onclick="changeScreen('townScreen')">🏃 도망가기</button>
+        </div>
+
+    </div>
+
+    <script>
+        // === 💾 데이터 구조 ===
+        let gameData = {
+            coins: 0,
+            weaponLevel: 0,
+            maxArmorLevel: 0, 
+            equippedArmorLevel: 0,
+            potions: 0,
+            hasHellBow: false,
+            hasDragonflyNet: false,
+            hasAdminWeapon: false,
+            hasScythe: false, 
+            hasDualDagger: false, // 신규 무기
+            equippedSkinName: null
+        };
+
+        // 런타임 변수
+        let playerCurrentHp = 1000;
+        let playerMaxHp = 1000;
+        let raidHp = 10000000;
+        let raidMaxHp = 10000000;
+        let currentRaidType = 'hell';
+        
+        let skillCD = { Z: 0, X: 0, C: 0 };
+        const MAX_CD = { Z: 5000, X: 10000, C: 20000 };
+        let isAutoWeapon = false;
+        let isAutoArmor = false;
+
+        // === 🗡️ 무기 DB ===
+        const weaponDB = [
+            { lv: 0, name: "낡은 검", icon: "🗡️" },
+            { lv: 10, name: "골드바", icon: "🧈" },
+            { lv: 20, name: "신화의 활", icon: "🏹" },
+            { lv: 35, name: "너클", icon: "👊" },
+            { lv: 50, name: "화염방사기", icon: "🔥" },
+            { lv: 65, name: "미니건", icon: "🚁" },
+            { lv: 70, name: "뱀파이어 이빨", icon: "🧛" },
+            { lv: 75, name: "로봇 팔", icon: "🤖" },
+            { lv: 80, name: "알람 시계", icon: "⏰" },
+            { lv: 90, name: "광선검", icon: "🔦" },
+            { lv: 100, name: "칼람빗", icon: "🌙" }
+        ];
+
+        // === 🛡️ 방어구 DB (Lv.100 추가) ===
+        const armorDB = [
+            { lv: 0, name: "맨몸", icon: "👕", hp: 1000 },
+            { lv: 10, name: "일반 갑옷", icon: "🧥", hp: 5000 },
+            { lv: 20, name: "철 갑옷", icon: "🛡️", hp: 20000 },
+            { lv: 30, name: "다이아 갑옷", icon: "💎", hp: 100000 },
+            { lv: 40, name: "에메랄드 갑옷", icon: "❇️", hp: 500000 },
+            { lv: 50, name: "신의 갑옷", icon: "👼", hp: 2000000 },
+            { lv: 60, name: "괴물의 가죽", icon: "👹", hp: 5000000 },
+            { lv: 70, name: "지옥의 갑주", icon: "🔥", hp: 10000000 },
+            { lv: 100, name: "사이보그 갑옷", icon: "🤖", hp: 50000000 } // 신규
+        ];
+
+        // === 1. 시스템 ===
+        function saveGame() { localStorage.setItem("rpg_v15_save", JSON.stringify(gameData)); }
+        function manualSave() { saveGame(); alert("저장 완료!"); }
+        function loadGame() {
+            const saved = localStorage.getItem("rpg_v15_save");
+            if(saved) {
+                let parsed = JSON.parse(saved);
+                if(parsed.armorLevel !== undefined && parsed.maxArmorLevel === undefined) {
+                    parsed.maxArmorLevel = parsed.armorLevel;
+                    parsed.equippedArmorLevel = parsed.armorLevel;
+                }
+                gameData = { ...gameData, ...parsed };
+            }
+            renderWeaponInventory(); renderArmorInventory(); updateUI();
+        }
+        function resetGame() { 
+            if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem("rpg_v15_save"); location.reload(); } 
+        }
+        setInterval(saveGame, 10000);
+
+        function useCode() {
+            const input = document.getElementById('codeInput').value.trim();
+            if (input === 'dlalsgh1215') { gameData.coins += 10000000000; alert("💰 100억 코인 획득!"); }
+            else if (input === 'gg100k') { if(!gameData.hasDragonflyNet) { gameData.hasDragonflyNet=true; alert("🕸️ [잠자리채] 획득!"); renderWeaponInventory(); } }
+            else if (input === '67') { if(!gameData.hasAdminWeapon) { gameData.hasAdminWeapon=true; alert("6️⃣7️⃣ [67 무기] 획득!"); renderWeaponInventory(); } }
+            else { alert("❌ 틀린 코드입니다."); }
+            document.getElementById('codeInput').value = ""; saveGame(); updateUI();
+        }
+
+        // === 2. 무기 뽑기 & 강화 ===
+        function gachaWeapon() {
+            const COST = 50000;
+            if (gameData.coins < COST) { log('town', "돈 부족 (5만G)"); return; }
+            if (gameData.weaponLevel >= 100) { log('town', "이미 만렙입니다!"); return; }
+
+            gameData.coins -= COST;
+            let roll = Math.random() * 100;
+            let resultLv = 0;
+            if (roll < 50) resultLv = 20 + Math.floor(Math.random()*10);
+            else if (roll < 80) resultLv = 40 + Math.floor(Math.random()*10);
+            else if (roll < 95) resultLv = 60 + Math.floor(Math.random()*15);
+            else resultLv = 80 + Math.floor(Math.random()*15);
+
+            if (resultLv > gameData.weaponLevel) {
+                gameData.weaponLevel = resultLv;
+                log('town', `✨ 대박! 무기 뽑기 성공! Lv.${resultLv}`);
+                renderWeaponInventory();
+            } else {
+                log('town', `꽝.. (Lv.${resultLv} 나옴)`);
+            }
+            updateUI();
+        }
+
+        function enhanceWeapon() {
+            if(gameData.coins < 100) return log('town', "돈 부족!");
+            gameData.coins -= 100;
+            let rate = 95; 
+            if (gameData.weaponLevel >= 80) rate = 60; 
+            else if (gameData.weaponLevel >= 50) rate = 80; 
+
+            if(Math.random()*100 < rate) { gameData.weaponLevel++; log('town', "강화 성공!"); renderWeaponInventory(); } 
+            else { if(gameData.weaponLevel>0) gameData.weaponLevel--; log('town', "실패!"); }
+            updateUI();
+        }
+
+        // === 3. 방어구 뽑기 (Lv.100 체크) ===
+        function gachaArmor(isAutoMode = false) {
+            const COST = 5000;
+            if (gameData.coins < COST) { if(!isAutoMode) log('town', "돈이 부족합니다 (5000G)"); return false; }
+            if (gameData.maxArmorLevel >= 100) { if(!isAutoMode) log('town', "최강 방어구 도달!"); return false; }
+
+            gameData.coins -= COST;
+            let successRate = 50; 
+            if (Math.random() * 100 < successRate) {
+                let currentIdx = armorDB.findIndex(a => a.lv === gameData.maxArmorLevel);
+                if (currentIdx < armorDB.length - 1) {
+                    let nextArmor = armorDB[currentIdx + 1];
+                    gameData.maxArmorLevel = nextArmor.lv;
+                    gameData.equippedArmorLevel = nextArmor.lv; 
+                    log('town', `🎉 방어구 승급! [${nextArmor.name}]`);
+                    renderArmorInventory(); updateUI();
+                }
+            } else { if(!isAutoMode) log('town', "꽝..."); }
+            updateUI(); return true;
+        }
+
+        async function autoGachaArmor() {
+            if(isAutoArmor) { isAutoArmor = false; document.getElementById('btnAutoArmor').innerText = "🔄 방어구 연속"; return; }
+            isAutoArmor = true; document.getElementById('btnAutoArmor').innerText = "⏹ 중단";
+            while(isAutoArmor && gameData.coins >= 5000 && gameData.maxArmorLevel < 100) {
+                gachaArmor(true); await new Promise(r => setTimeout(r, 100));
+            }
+            isAutoArmor = false; document.getElementById('btnAutoArmor').innerText = "🔄 방어구 연속";
+        }
+
+        // === 4. 스킬 (듀얼 단검 추가) ===
+        function getWeaponSkillInfo() {
+            let weapon = getCurrentDisplayWeapon();
+            let name = weapon.name;
+            if (name === "잠자리채") return { Z:{name:"🌌 블랙홀", mult:0, fixed:99999999}, X:{name:"💫 붕괴", mult:500}, C:{name:"❌ 삭제", mult:1000} };
+            if (name === "지옥의 활") return { Z:{name:"🔥 불화살", mult:10}, X:{name:"🌋 마그마", mult:30}, C:{name:"☄️ 메테오", mult:50} };
+            if (name === "67 무기") return { Z:{name:"🎲 랜덤", mult:20}, X:{name:"🎰 잭팟", mult:77}, C:{name:"💀 즉사", mult:100} };
+            if (name === "사신의 낫") return { Z:{name:"👻 영혼베기", mult:50}, X:{name:"⚖️ 사형선고", mult:200}, C:{name:"⚰️ 영면", mult:500} };
+            if (name === "칼람빗") return { Z:{name:"⚔️ 급소베기", mult:100}, X:{name:"🌑 그림자춤", mult:300}, C:{name:"🩸 암살", mult:500} };
+            if (name === "듀얼 단검") return { Z:{name:"⚔️ 크로스컷", mult:200}, X:{name:"🌪️ 블레이드", mult:500}, C:{name:"⚡ 음속돌파", mult:1500} };
+            return { Z:{name:"⚡ 강타", mult:5}, X:{name:"⚔️ 연타", mult:10}, C:{name:"💢 폭주", mult:20} };
+        }
+
+        function updateSkillButtons() {
+            const skills = getWeaponSkillInfo();
+            const skillHTML = (suffix) => `
+                <button class="btn-skill" onclick="useSkill('Z')">${skills.Z.name} (Z)<div class="skill-overlay" id="cdZ${suffix}"></div></button>
+                <button class="btn-skill" onclick="useSkill('X')">${skills.X.name} (X)<div class="skill-overlay" id="cdX${suffix}"></div></button>
+                <button class="btn-skill" onclick="useSkill('C')">${skills.C.name} (C)<div class="skill-overlay" id="cdC${suffix}"></div></button>
+            `;
+            document.getElementById('battleSkills').innerHTML = skillHTML('');
+            document.getElementById('raidSkills').innerHTML = skillHTML('_R');
+        }
+
+        function useSkill(key) {
+            const now = Date.now();
+            if (now < skillCD[key]) return;
+            skillCD[key] = now + MAX_CD[key];
+            const ids = [`cd${key}`, `cd${key}_R`];
+            ids.forEach(id => { const el=document.getElementById(id); if(el){el.style.height="100%";el.offsetHeight;el.style.transition=`height ${MAX_CD[key]}ms linear`;el.style.height="0%";}});
+            let skills = getWeaponSkillInfo();
+            log(document.getElementById('raidScreen').classList.contains('active') ? 'raid' : 'battle', `${skills[key].name} 발동!`);
+        }
+
+        function calculateDamage() {
+            let base = gameData.weaponLevel + 10;
+            let finalDmg = base;
+            const now = Date.now();
+            let skills = getWeaponSkillInfo();
+            let activeSkill = null;
+            if (now - (skillCD.C - MAX_CD.C) < 1000) activeSkill = skills.C;
+            else if (now - (skillCD.X - MAX_CD.X) < 1000) activeSkill = skills.X;
+            else if (now - (skillCD.Z - MAX_CD.Z) < 1000) activeSkill = skills.Z;
+
+            if (activeSkill) {
+                if (activeSkill.fixed) finalDmg = activeSkill.fixed;
+                else finalDmg = base * activeSkill.mult;
+            }
+            return Math.floor(finalDmg);
+        }
+
+        // === 5. 레이드 (듀얼 단검 추가) ===
+        function raidSuccess() {
+            if (currentRaidType === 'hell') {
+                alert("🎉 지옥의 파수꾼 처치! (500만 G)");
+                gameData.coins += 5000000;
+                if(Math.random() < 0.2 && !gameData.hasHellBow) {
+                    gameData.hasHellBow = true; alert("🔥 [지옥의 활] 획득!"); renderWeaponInventory();
+                }
+            } else if (currentRaidType === 'reaper') {
+                alert("🎉 사신 처치! (1000만 G)");
+                gameData.coins += 10000000;
+                if(Math.random() < 0.1 && !gameData.hasScythe) {
+                    gameData.hasScythe = true; alert("💀 [사신의 낫] 획득!"); renderWeaponInventory();
+                }
+            } else if (currentRaidType === 'dagger') {
+                alert("🎉 암살자 마스터 처치! (3000만 G)");
+                gameData.coins += 30000000;
+                // 15% 확률
+                if(Math.random() < 0.15 && !gameData.hasDualDagger) {
+                    gameData.hasDualDagger = true; alert("⚔️ [듀얼 단검] 획득! (15%)"); renderWeaponInventory();
+                }
+            }
+            saveGame(); changeScreen('townScreen');
+        }
+
+        function startRaid(type) {
+            currentRaidType = type;
+            let armor = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0];
+            playerMaxHp = armor.hp; playerCurrentHp = playerMaxHp;
+
+            if (type === 'hell') { raidMaxHp = 10000000; raidHp = raidMaxHp; document.getElementById('raidTitle').innerText = "🔥 지옥의 파수꾼"; document.getElementById('raidBossIcon').innerText = "👿"; } 
+            else if (type === 'reaper') { raidMaxHp = 50000000; raidHp = raidMaxHp; document.getElementById('raidTitle').innerText = "💀 사신"; document.getElementById('raidBossIcon').innerText = "💀"; }
+            else if (type === 'dagger') { raidMaxHp = 200000000; raidHp = raidMaxHp; document.getElementById('raidTitle').innerText = "⚔️ 암살자 마스터"; document.getElementById('raidBossIcon').innerText = "⚔️"; }
+
+            updateSkillButtons(); changeScreen('raidScreen'); updateRaidUI();
+        }
+
+        // === 인벤토리 ===
+        function renderWeaponInventory() {
+            const grid = document.getElementById('weaponInventoryGrid'); grid.innerHTML = "";
+            weaponDB.forEach(w => createWeaponSlot(grid, w.icon, `Lv.${w.lv}`, gameData.weaponLevel >= w.lv, w.name));
+            createWeaponSlot(grid, "🔥", "지옥활", gameData.hasHellBow, "지옥의 활");
+            createWeaponSlot(grid, "🕸️", "잠자리채", gameData.hasDragonflyNet, "잠자리채");
+            createWeaponSlot(grid, "6️⃣7️⃣", "히든", gameData.hasAdminWeapon, "67 무기");
+            createWeaponSlot(grid, "💀", "사신낫", gameData.hasScythe, "사신의 낫");
+            createWeaponSlot(grid, "⚔️", "듀얼단검", gameData.hasDualDagger, "듀얼 단검");
+        }
+
+        function createWeaponSlot(parent, icon, text, unlock, skinName) {
+            let div = document.createElement('div'); div.className = "inv-slot";
+            if(!unlock) { div.classList.add('locked'); div.innerHTML = "🔒"; }
+            else { 
+                div.innerHTML = `<div class="slot-icon">${icon}</div><div class="slot-lv">${text}</div>`;
+                div.onclick = () => { gameData.equippedSkinName = skinName; renderWeaponInventory(); updateUI(); };
+                if(getCurrentDisplayWeapon().name === skinName) div.classList.add('selected');
+            }
+            parent.appendChild(div);
+        }
+
+        function renderArmorInventory() {
+            const grid = document.getElementById('armorInventoryGrid'); grid.innerHTML = "";
+            armorDB.forEach(a => {
+                let div = document.createElement('div'); div.className = "inv-slot";
+                let unlock = gameData.maxArmorLevel >= a.lv;
+                if(!unlock) { div.classList.add('locked'); div.innerHTML = "🔒"; }
+                else {
+                    div.innerHTML = `<div class="slot-icon">${a.icon}</div><div class="slot-lv">Lv.${a.lv}</div>`;
+                    div.onclick = () => { gameData.equippedArmorLevel = a.lv; renderArmorInventory(); updateUI(); };
+                    if(gameData.equippedArmorLevel === a.lv) div.classList.add('selected');
+                }
+                grid.appendChild(div);
+            });
+        }
+
+        // === 기타 ===
+        function attackMonster() {
+            let dmg = calculateDamage(); gameData.coins += 100 + Math.floor(dmg / 10);
+            log('battle', `공격! ${dmg.toLocaleString()}`);
+            document.getElementById('attackBtn').style.display = 'none'; document.getElementById('nextMonsterBtn').style.display = 'inline-block'; updateUI();
+        }
+        function goToRaidSelect() { changeScreen('raidSelectScreen'); }
+        function attackRaidBoss() {
+            if (raidHp <= 0) return;
+            let dmg = calculateDamage(); raidHp -= dmg; if(raidHp < 0) raidHp = 0;
+            // 보스 데미지
+            let bossDmg = 1000;
+            if(currentRaidType === 'reaper') bossDmg = 5000;
+            if(currentRaidType === 'dagger') bossDmg = 20000;
+
+            playerCurrentHp -= bossDmg; updateRaidUI(); log('raid', `${dmg.toLocaleString()} 피해!`);
+            if (playerCurrentHp <= 0) { alert("💀 사망했습니다..."); changeScreen('townScreen'); } else if (raidHp <= 0) { raidSuccess(); }
+        }
+        function drinkPotion() { if(gameData.potions>0){gameData.potions--; playerCurrentHp=playerMaxHp; updateRaidUI(); log('raid',"회복 완료!"); updateUI();} }
+        async function autoEnhance() {
+            if(isAutoWeapon) return; isAutoWeapon = true; document.querySelector('.btn-auto').innerText = "⏹";
+            while(isAutoWeapon && gameData.coins >= 100 && gameData.weaponLevel < 100) { enhanceWeapon(); await new Promise(r=>setTimeout(r, 50)); }
+            isAutoWeapon = false; document.querySelector('.btn-auto').innerText = "⚡ 연속강화"; saveGame();
+        }
+        function updateUI() {
+            document.getElementById('coinDisplay').innerText = Math.floor(gameData.coins).toLocaleString();
+            document.getElementById('potionDisplay').innerText = gameData.potions;
+            let wInfo = getCurrentDisplayWeapon();
+            document.getElementById('townWeaponIcon').innerText = wInfo.icon;
+            document.getElementById('weaponStatus').innerText = `Lv.${gameData.weaponLevel} ${wInfo.name}`;
+            let aInfo = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0];
+            document.getElementById('townArmorIcon').innerText = aInfo.icon;
+            document.getElementById('armorStatus').innerText = aInfo.name;
+        }
+        function updateRaidUI() {
+            document.getElementById('raidHpBar').style.width = (raidHp / raidMaxHp)*100 + "%";
+            document.getElementById('raidHpText').innerText = raidHp.toLocaleString();
+            document.getElementById('playerHpBar').style.width = (playerCurrentHp / playerMaxHp)*100 + "%";
+            document.getElementById('playerHpText').innerText = `${playerCurrentHp.toLocaleString()} / ${playerMaxHp.toLocaleString()}`;
+        }
+        function getCurrentDisplayWeapon() {
+            if(gameData.equippedSkinName) {
+                if(gameData.equippedSkinName==="잠자리채" && gameData.hasDragonflyNet) return {name:"잠자리채", icon:"🕸️"};
+                if(gameData.equippedSkinName==="지옥의 활" && gameData.hasHellBow) return {name:"지옥의 활", icon:"🔥"};
+                if(gameData.equippedSkinName==="67 무기" && gameData.hasAdminWeapon) return {name:"67 무기", icon:"6️⃣7️⃣"};
+                if(gameData.equippedSkinName==="사신의 낫" && gameData.hasScythe) return {name:"사신의 낫", icon:"💀"};
+                if(gameData.equippedSkinName==="듀얼 단검" && gameData.hasDualDagger) return {name:"듀얼 단검", icon:"⚔️"};
+                let f = weaponDB.find(w=>w.name===gameData.equippedSkinName);
+                if(f && gameData.weaponLevel>=f.lv) return f;
+            }
+            for(let i=weaponDB.length-1; i>=0; i--) if(gameData.weaponLevel >= weaponDB[i].lv) return weaponDB[i];
+            return weaponDB[0];
+        }
+        function toggleMode() { document.body.className = document.body.className==="mode-pc"?"mode-mobile":"mode-pc"; }
+        function changeScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function log(t,m) { document.getElementById(t+"Log").innerText = m; }
+        function goToField() { changeScreen('fieldScreen'); updateSkillButtons(); }
+        function spawnMonster() {
+            document.getElementById('attackBtn').style.display = 'inline-block'; document.getElementById('nextMonsterBtn').style.display = 'none';
+            document.getElementById('monsterIcon').innerText = "❓"; document.getElementById('monsterInfo').innerText = "탐색 완료";
+        }
+        function chopWood() { gameData.coins+=500; updateUI(); log('forest',"+500 G"); }
+
+        loadGame();
+    </script>
 </body>
 </html>
