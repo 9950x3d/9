@@ -227,10 +227,15 @@
             <button class="btn-wing-use" id="btnWingUse" onclick="useDragonWing()">🦋 드래곤 날개 사용 (1시간 버프)</button>
             <button class="btn-eat" id="btnEatFinger" onclick="eatFinger()">🧟 스쿠나 손가락 삼키기 (DMG x2) 🧟</button>
             
+            <!-- 버튼 배치 수정: 강화 / 상인 -->
             <div style="display: flex; justify-content: center; width: 100%;">
-                <button class="btn-enhance" style="width: 32%;" onclick="enhanceWeapon()">🔨 강화 (80%)</button>
-                <button class="btn-gacha-w" style="width: 32%;" onclick="gachaWeapon()">🗡️ 무기뽑기</button>
-                <button class="btn-merchant" style="width: 32%;" onclick="changeScreen('merchantScreen')">💰 상인 거래</button>
+                <button class="btn-enhance" style="width: 48%;" onclick="enhanceWeapon()">🔨 강화 (80%)</button>
+                <button class="btn-merchant" style="width: 48%;" onclick="changeScreen('merchantScreen')">💰 상인 거래</button>
+            </div>
+            <!-- 버튼 배치 수정: 무기 뽑기 (단발 / 연속) -->
+            <div style="display: flex; justify-content: center; width: 100%; margin-top:2px;">
+                <button class="btn-gacha-w" style="width: 48%;" onclick="gachaWeapon()">🗡️ 무기뽑기</button>
+                <button class="btn-auto" id="btnAutoWeaponGacha" style="width: 48%;" onclick="autoGachaWeapon()">🔄 무기 연속</button>
             </div>
             <div style="display: flex; justify-content: center; width: 100%; margin-top:2px;">
                 <button class="btn-gacha-a" style="width: 48%;" onclick="gachaArmor(false)">🛡️ 방어구 뽑기 (5000G)</button>
@@ -534,7 +539,7 @@
         const MAX_CD = { Z: 3000, X: 8000, C: 15000, V: 45000, B: 300000 };
         let skillActiveTime = { Z: 0, X: 0, C: 0, V: 0, B: 0 };
 
-        let isAutoWeapon = false, isAutoArmor = false;
+        let isAutoWeapon = false, isAutoArmor = false, isAutoWeaponGacha = false;
         let currentRaidType = 'hell';
         let dungeonMode = 'normal'; // 'normal' | 'christmas'
         
@@ -1173,13 +1178,67 @@
             renderWeaponInventory(); saveGame();
         }
 
-        function gachaWeapon() {
-            const COST = 50000; if (gameData.coins < COST) { log('town', "돈 부족"); return; } if (gameData.weaponLevel >= 2000) { log('town', "준 종결급!"); return; } 
-            gameData.coins -= COST; let roll = Math.random() * 100; let resultLv = 0;
-            if (roll < 5) resultLv = 80 + Math.floor(Math.random()*20); else if (roll < 30) resultLv = 120 + Math.floor(Math.random()*40); else if (roll < 70) resultLv = 160 + Math.floor(Math.random()*40); else if (roll < 95) resultLv = 200 + Math.floor(Math.random()*100); else if (roll < 99) resultLv = 300 + Math.floor(Math.random()*200); else resultLv = 500 + Math.floor(Math.random()*490); 
+        function gachaWeapon(isAuto=false) {
+            const COST = 50000; 
+            if (gameData.coins < COST) { 
+                if(!isAuto) log('town', "돈 부족"); 
+                return; 
+            } 
+            if (gameData.weaponLevel >= 2000) { 
+                if(!isAuto) log('town', "준 종결급!"); 
+                return; 
+            } 
+            
+            gameData.coins -= COST; 
+            let roll = Math.random() * 100; 
+            let resultLv = 0;
+            if (roll < 5) resultLv = 80 + Math.floor(Math.random()*20); 
+            else if (roll < 30) resultLv = 120 + Math.floor(Math.random()*40); 
+            else if (roll < 70) resultLv = 160 + Math.floor(Math.random()*40); 
+            else if (roll < 95) resultLv = 200 + Math.floor(Math.random()*100); 
+            else if (roll < 99) resultLv = 300 + Math.floor(Math.random()*200); 
+            else resultLv = 500 + Math.floor(Math.random()*490); 
+            
             if (resultLv > 2000) resultLv = 2000; 
-            if (resultLv > gameData.weaponLevel) { gameData.weaponLevel = resultLv; queueReward(`Lv.${resultLv} 무기`, "✨"); renderWeaponInventory(); AudioEngine.sfx.levelUp(); } else { log('town', `..Lv.${resultLv}`); } updateUI();
+            
+            if (resultLv > gameData.weaponLevel) { 
+                gameData.weaponLevel = resultLv; 
+                queueReward(`Lv.${resultLv} 무기`, "✨"); 
+                renderWeaponInventory(); 
+                AudioEngine.sfx.levelUp(); 
+            } else { 
+                log('town', `..Lv.${resultLv}`); 
+            } 
+            updateUI();
         }
+
+        async function autoGachaWeapon() {
+            if(isAutoWeaponGacha) {
+                isAutoWeaponGacha = false;
+                document.getElementById('btnAutoWeaponGacha').innerText = "🔄 무기 연속";
+                document.getElementById('btnAutoWeaponGacha').classList.remove('btn-field');
+                document.getElementById('btnAutoWeaponGacha').classList.add('btn-auto');
+                return;
+            }
+            isAutoWeaponGacha = true;
+            document.getElementById('btnAutoWeaponGacha').innerText = "⏹ 중단";
+            document.getElementById('btnAutoWeaponGacha').classList.remove('btn-auto');
+            document.getElementById('btnAutoWeaponGacha').classList.add('btn-field'); // 빨간색 강조
+
+            while(isAutoWeaponGacha && gameData.coins >= 50000 && gameData.weaponLevel < 2000) {
+                gachaWeapon(true);
+                await new Promise(r => setTimeout(r, 100));
+            }
+            
+            if (gameData.coins < 50000) log('town', "돈 부족으로 종료");
+            if (gameData.weaponLevel >= 2000) log('town', "최고 레벨 도달!");
+
+            isAutoWeaponGacha = false;
+            document.getElementById('btnAutoWeaponGacha').innerText = "🔄 무기 연속";
+            document.getElementById('btnAutoWeaponGacha').classList.remove('btn-field');
+            document.getElementById('btnAutoWeaponGacha').classList.add('btn-auto');
+        }
+
         function enhanceWeapon() {
             if(gameData.coins < 100) return log('town', "돈 부족!"); gameData.coins -= 100;
             let rate = 80; if (gameData.weaponLevel >= 2000) { log('town', "최고 레벨 도달!"); return; }
