@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG v32: 강화 확률 80% 고정</title>
+    <title>RPG v48: 크리스마스 던전 업데이트</title>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
@@ -18,6 +18,7 @@
             height: 100vh;
             user-select: none;
             overflow: hidden;
+            transition: background-color 1s ease;
         }
         
         /* === 📱 모바일 모드 CSS === */
@@ -32,6 +33,8 @@
             max-height: 90vh; 
             overflow-y: auto; 
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
         }
 
         body.mode-mobile .game-container {
@@ -42,11 +45,16 @@
         body.mode-mobile h2 { font-size: 22px; margin-bottom: 10px; }
 
         .top-bar {
-            width: 100%; background-color: #000; padding: 10px 0; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 10px rgba(255,255,255,0.1); position: fixed; top: 0; z-index: 100;
+            width: 100%; background-color: #000; padding: 5px 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 10px rgba(255,255,255,0.1); position: fixed; top: 0; z-index: 100;
         }
-        .res-coin { color: #f1c40f; } .res-potion { color: #e056fd; } .res-cube { color: #3498db; }
-        .res-finger { color: #e74c3c; animation: beat 1s infinite; }
-        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        .res-row { display: flex; gap: 10px; }
+        .music-bar { width: 100%; background: #111; color: #00ff00; font-family: 'Courier New', monospace; font-size: 10px; padding: 2px 0; text-align: center; cursor: pointer; }
+        
+        .res-coin { color: #f1c40f; } 
+        .res-potion-hp { color: #e056fd; } 
+        .res-potion-atk { color: #e67e22; } 
+        .res-potion-def { color: #3498db; }
+        .res-ticket { color: #00ffcc; text-shadow: 0 0 5px #00ffcc; }
 
         .btn-small { background: #555; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; color: white; font-size: 11px; }
 
@@ -66,7 +74,7 @@
             margin-bottom: 5px; white-space: pre-line; border: 1px solid #333;
         }
 
-        button { padding: 8px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; margin: 2px; font-weight: bold; width: 96%; transition: 0.1s; }
+        button { padding: 8px; font-size: 13px; border: none; border-radius: 6px; cursor: pointer; margin: 2px; font-weight: bold; width: 96%; transition: 0.1s; position: relative; z-index: 5; }
         button:active { transform: scale(0.96); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -78,27 +86,43 @@
         .btn-forest { background-color: #27ae60; color: white; }
         .btn-field { background-color: #c0392b; color: white; }
         .btn-raid { background-color: #c0392b; color: white; border: 2px solid #e74c3c; }
+        .btn-merchant { background-color: #f39c12; color: black; border: 2px solid #e67e22; font-weight: bold; }
         
-        .btn-reaper { background-color: #2c3e50; color: white; border: 2px solid #000; } 
-        .btn-dagger { background-color: #34495e; color: #f1c40f; border: 2px solid #f1c40f; }
-        .btn-hydra { background-color: #27ae60; color: white; border: 2px solid #2ecc71; }
-        .btn-phoenix { background-color: #e67e22; color: white; border: 2px solid #d35400; box-shadow: 0 0 10px orangered; } 
-        .btn-joker { background-color: #6a0dad; color: #00ff00; border: 2px solid #00ff00; }
-        .btn-1x { background-color: #fff; color: #000; border: 2px solid #000; font-family: 'Courier New', monospace; font-weight: 900; } 
-        .btn-gojo { background: linear-gradient(45deg, #000, #001f3f, #000); color: #00bfff; border: 2px solid #fff; box-shadow: 0 0 15px #00bfff; animation: glow 2s infinite alternate; }
-        
+        .btn-dungeon { background: #2c2c54; color: #a29bfe; border: 2px solid #6c5ce7; box-shadow: 0 0 10px #6c5ce7; }
+        /* 크리스마스 버튼 스타일 */
+        .btn-xmas { background: linear-gradient(45deg, #c0392b, #27ae60); color: white; border: 2px solid #fff; box-shadow: 0 0 10px #e74c3c; animation: pulse 2s infinite; }
+
+        .btn-auto-attack { background-color: #e84393; color: white; border: 2px solid #fd79a8; box-shadow: 0 0 5px #e84393; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(232, 67, 147, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(232, 67, 147, 0); } 100% { box-shadow: 0 0 0 0 rgba(232, 67, 147, 0); } }
+
         .btn-eat { background-color: #800000; color: #ffcccc; border: 1px solid #ff0000; animation: beat 2s infinite; display: none; }
         .btn-prison { background: #333; border: 2px solid #3498db; color: #3498db; box-shadow: 0 0 10px #3498db; display: none; }
 
         .btn-save { background-color: #2980b9; color: white; width: 48% !important; }
         .btn-reset { background-color: #c0392b; color: white; width: 48% !important; }
         .btn-town { background-color: #7f8c8d; color: white; }
-        .btn-potion { background-color: #8e44ad; color: white; border: 1px solid #e056fd; }
+        
+        /* 일반 물약 */
+        .btn-potion-hp { background-color: #8e44ad; color: white; border: 1px solid #e056fd; width:32%; }
+        .btn-potion-atk { background-color: #d35400; color: white; border: 1px solid #e67e22; width:32%; }
+        .btn-potion-def { background-color: #2980b9; color: white; border: 1px solid #3498db; width:32%; }
+        
+        /* 초월 물약 */
+        .btn-super-hp { background: linear-gradient(45deg, #ff00ff, #8e44ad); border: 2px solid #fff; width:32%; box-shadow: 0 0 5px #ff00ff; }
+        .btn-super-atk { background: linear-gradient(45deg, #ffcc00, #e67e22); border: 2px solid #fff; width:32%; box-shadow: 0 0 5px #ffcc00; }
+        .btn-super-def { background: linear-gradient(45deg, #00ffff, #3498db); border: 2px solid #fff; width:32%; box-shadow: 0 0 5px #00ffff; }
 
-        .skill-container { display: flex; justify-content: space-between; margin-bottom: 5px; gap: 2px; }
-        .btn-skill { width: 24%; background-color: #333; border: 1px solid #aaa; color: #fff; font-size: 9px; position: relative; overflow: hidden; height: 35px; line-height: 1.1; }
-        #skillV, #skillV_R { border-color: #a29bfe; color: #a29bfe; font-weight: bold; display: none; }
-        .skill-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background-color: rgba(0,0,0,0.7); transition: height linear; }
+        /* 스킬 버튼 UI */
+        .skill-container { display: flex; justify-content: space-between; margin-bottom: 5px; gap: 2px; width: 100%; }
+        .btn-skill { 
+            width: 19%; 
+            background-color: #333; border: 1px solid #777; color: #fff; 
+            font-size: 10px; position: relative; overflow: hidden; height: 35px; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .skill-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background-color: rgba(0,0,0,0.6); transition: height 0.1s linear; }
+        .skill-key { font-weight: bold; color: #ffd700; font-size: 11px; z-index: 2; }
+        .skill-name { font-size: 9px; color: #ccc; z-index: 2; }
 
         .code-area { margin-top: 5px; border-top: 1px solid #555; padding-top: 5px; }
         .input-code { padding: 8px; border-radius: 4px; border: none; width: 60%; margin-right: 5px; font-size: 14px; }
@@ -117,13 +141,24 @@
         .hp-text { position: absolute; width: 100%; text-align: center; top: 0; font-size: 12px; line-height: 20px; text-shadow: 1px 1px 1px black; z-index: 2; color:white; }
         .boss-hp-bar { width: 100%; height: 100%; background: #e74c3c; transition: width 0.2s; }
         .player-hp-bar { width: 100%; height: 100%; background: #2ecc71; transition: width 0.2s; }
+        .dungeon-hp-bar { width: 100%; height: 100%; background: #8e44ad; transition: width 0.1s; }
 
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -2px); } 100% { transform: translate(1px, -2px); } }
-        .shake { animation: shake 0.2s; }
+        .buff-icon { position: fixed; top: 50px; right: 10px; font-size: 20px; z-index: 200; display: flex; flex-direction: column; gap: 5px;}
+
+        /* 상인 아이템 목록 */
+        .merchant-item { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 10px; margin-bottom: 5px; border-radius: 8px; border: 1px solid #555; }
+        .m-info { text-align: left; }
+        .m-name { font-weight: bold; color: #f1c40f; font-size: 14px; }
+        .m-desc { font-size: 11px; color: #aaa; }
+        .btn-buy { background-color: #27ae60; color: white; padding: 8px 15px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-buy:active { transform: scale(0.95); }
+
+        /* 드래곤 날개 버튼 */
+        .btn-wing-use { background: linear-gradient(45deg, #FFD700, #DAA520); color: black; border: 2px solid #fff; animation: pulse 1s infinite; display: none; margin-bottom: 5px;}
 
         #rewardOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 200;
+            background: rgba(0,0,0,0.85); z-index: 300;
             display: none; justify-content: center; align-items: center;
             flex-direction: column;
             backdrop-filter: blur(5px);
@@ -142,9 +177,6 @@
         .reward-sub { color: #aaa; font-size: 14px; margin-bottom: 20px; }
         .btn-claim { background: linear-gradient(to right, #f1c40f, #e67e22); border: none; padding: 12px 20px; color: black; font-weight: bold; border-radius: 20px; cursor: pointer; width: 80%; font-size: 16px; box-shadow: 0 5px 15px rgba(230, 126, 34, 0.4); transition: transform 0.1s; }
         .btn-claim:active { transform: scale(0.95); }
-
-        @keyframes popIn { from { transform: scale(0) rotate(-10deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
     </style>
 </head>
 <body class="mode-pc">
@@ -158,17 +190,27 @@
         </div>
     </div>
 
+    <div class="buff-icon" id="buffIcons"></div>
+
     <div class="top-bar">
-        <div class="res-coin">💰 <span id="coinDisplay">0</span></div>
-        <div class="res-potion">🧪 <span id="potionDisplay">0</span></div>
-        <div class="res-cube">📦 <span id="prisonDisplay">0</span></div>
-        <div class="res-finger">🧟 <span id="fingerDisplay">0</span></div>
-        <button class="btn-small btn-mode" onclick="toggleMode()">💻/📱 모드</button>
-        <button class="btn-small" onclick="manualSave()">💾 저장</button>
+        <div class="music-bar" id="musicBar" onclick="initAudio()">🔊 소리 켜기 (클릭)</div>
+        <div class="res-row">
+            <div class="res-coin">💰 <span id="coinDisplay">0</span></div>
+            <div class="res-potion-hp">🧪 <span id="potionDisplay">0</span></div>
+            <div class="res-potion-atk">⚔️ <span id="potionAtkDisplay">0</span></div>
+            <div class="res-potion-def">🛡️ <span id="potionDefDisplay">0</span></div>
+        </div>
+        <div class="res-row">
+            <div class="res-ticket">🎟️ <span id="ticketDisplay">0</span></div> 
+            <div class="res-cube">📦 <span id="prisonDisplay">0</span></div>
+            <div class="res-finger">🧟 <span id="fingerDisplay">0</span></div>
+            <button class="btn-small btn-mode" onclick="toggleMode()">💻/📱</button>
+            <button class="btn-small" onclick="manualSave()">💾</button>
+        </div>
     </div>
 
     <div class="game-container">
-        
+        <!-- 마을 -->
         <div id="townScreen" class="screen active">
             <h2>🏰 마을 광장</h2>
             <div class="equip-container">
@@ -181,31 +223,31 @@
                     <div class="status" id="armorStatus">맨몸</div>
                 </div>
             </div>
-            
-            <div class="log-box" id="townLog">강화 확률 80% 고정!</div>
-            
+            <div class="log-box" id="townLog">크리스마스 이벤트가 시작되었습니다!</div>
+            <button class="btn-wing-use" id="btnWingUse" onclick="useDragonWing()">🦋 드래곤 날개 사용 (1시간 버프)</button>
             <button class="btn-eat" id="btnEatFinger" onclick="eatFinger()">🧟 스쿠나 손가락 삼키기 (DMG x2) 🧟</button>
-
+            
             <div style="display: flex; justify-content: center; width: 100%;">
-                <button class="btn-enhance" style="width: 32%;" onclick="enhanceWeapon()">🔨 강화 (확률 80%)</button>
-                <button class="btn-gacha-w" style="width: 32%;" onclick="gachaWeapon()">🗡️ 무기뽑기(확률↑)</button>
-                <button class="btn-auto" style="width: 32%;" onclick="autoEnhance()">⚡ 연속강화</button>
+                <button class="btn-enhance" style="width: 32%;" onclick="enhanceWeapon()">🔨 강화 (80%)</button>
+                <button class="btn-gacha-w" style="width: 32%;" onclick="gachaWeapon()">🗡️ 무기뽑기</button>
+                <button class="btn-merchant" style="width: 32%;" onclick="changeScreen('merchantScreen')">💰 상인 거래</button>
             </div>
             <div style="display: flex; justify-content: center; width: 100%; margin-top:2px;">
                 <button class="btn-gacha-a" style="width: 48%;" onclick="gachaArmor(false)">🛡️ 방어구 뽑기 (5000G)</button>
                 <button class="btn-auto" id="btnAutoArmor" style="width: 48%;" onclick="autoGachaArmor()">🔄 방어구 연속</button>
             </div>
-            <div style="display:flex; justify-content: space-between; margin-top:5px;">
-                <button class="btn-forest" style="width:32%" onclick="changeScreen('forestScreen')">🌲 숲</button>
-                <button class="btn-field" style="width:32%" onclick="goToField()">👹 사냥터</button>
-                <button class="btn-raid" style="width:32%" onclick="goToRaidSelect()">🔥 레이드</button>
+            <div style="display:flex; justify-content: space-between; margin-top:5px; flex-wrap: wrap;">
+                <button class="btn-forest" style="width:49%" onclick="changeScreen('forestScreen')">🌲 숲</button>
+                <button class="btn-field" style="width:49%" onclick="goToField()">👹 사냥터</button>
+                <button class="btn-raid" style="width:49%; margin-top:3px;" onclick="goToRaidSelect()">🔥 레이드</button>
+                <button class="btn-dungeon" style="width:49%; margin-top:3px;" onclick="goToDungeonSelect()">🕳️ 무한의 동굴</button>
             </div>
             <div style="display:flex; justify-content: center; margin-top:5px;">
                 <button class="btn-save" onclick="manualSave()">💾 저장</button>
                 <button class="btn-reset" onclick="resetGame()">🗑️ 초기화</button>
             </div>
             <div class="inventory-box">
-                <div class="inv-title">🎒 무기 인벤토리 (터치하여 장착)</div>
+                <div class="inv-title">🎒 무기 인벤토리</div>
                 <div class="inv-grid" id="weaponInventoryGrid"></div>
             </div>
             <div class="inventory-box">
@@ -213,14 +255,118 @@
                 <div class="inv-grid" id="armorInventoryGrid"></div>
             </div>
             <div class="code-area">
-                <input type="text" id="codeInput" class="input-code" placeholder="코드 입력 (gg: 손가락 5개)">
+                <input type="text" id="codeInput" class="input-code" placeholder="코드 입력 (1234: 티켓 50장)">
                 <button class="btn-code" onclick="useCode()">입력</button>
             </div>
         </div>
 
+        <!-- 상인 화면 -->
+        <div id="merchantScreen" class="screen">
+            <h2>💰 거래 상인</h2>
+            <div class="log-box">강력한 물건을 팝니다...</div>
+            
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">🪭 드래곤 부채</div>
+                    <div class="m-desc">가성비 무기 (500층 드롭)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('dragonFan')">1억 G</button>
+            </div>
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">🐲👥 드래곤 클론</div>
+                    <div class="m-desc">단검의 보급형 (단검보다 약함)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('dragonClone')">1.5억 G</button>
+            </div>
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">🐲 드래곤 헤드 (갑옷)</div>
+                    <div class="m-desc">HP 50조 (가시 갑옷보다 강력)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('dragonHead')">2억 G</button>
+            </div>
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">🐉🗡️ 드래곤 단검</div>
+                    <div class="m-desc">최강의 무기 (고죠, 스쿠나 초월)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('dragonDagger')">5억 G</button>
+            </div>
+            <hr style="border:1px solid #444; margin: 10px 0;">
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">🧪 초월 HP 물약</div>
+                    <div class="m-desc">체력 x50 (일회용)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('superHp')">500만 G</button>
+            </div>
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">⚔️ 초월 공격 물약</div>
+                    <div class="m-desc">데미지 x50 (30초)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('superAtk')">500만 G</button>
+            </div>
+            <div class="merchant-item">
+                <div class="m-info">
+                    <div class="m-name">🛡️ 초월 방어 물약</div>
+                    <div class="m-desc">방어력 x100 (30초)</div>
+                </div>
+                <button class="btn-buy" onclick="buyItem('superDef')">500만 G</button>
+            </div>
+
+            <button class="btn-town" onclick="changeScreen('townScreen')">🔙 돌아가기</button>
+        </div>
+
+        <!-- 던전 선택 화면 (신규) -->
+        <div id="dungeonSelectScreen" class="screen">
+            <h2>🏰 던전 고르기</h2>
+            <div class="log-box">도전할 던전을 선택하세요.</div>
+            <div style="display:flex; flex-direction:column; gap:10px; padding:20px;">
+                <button class="btn-dungeon" style="height:60px; font-size:16px;" onclick="startDungeon('normal')">🕳️ 무한의 동굴 (일반)</button>
+                <button class="btn-xmas" style="height:60px; font-size:16px;" onclick="startDungeon('christmas')">🎄 무한 크리스마스 던전 (이벤트)</button>
+            </div>
+            <div style="font-size:12px; color:#aaa; margin-top:5px;">
+                * 크리스마스 던전 드롭:<br>
+                🍬 캔디 낫 (2%) / 🎋 캔디 카타나 (3%) / 🍭 캔디 지팡이 (4%)
+            </div>
+            <button class="btn-town" onclick="changeScreen('townScreen')" style="margin-top:20px;">🔙 마을로 돌아가기</button>
+        </div>
+
+        <!-- 던전 -->
+        <div id="dungeonScreen" class="screen">
+            <h2 id="dungeonTitle">🕳️ 무한의 동굴</h2>
+            <div style="font-size:14px; margin-bottom:5px;">현재 웨이브: <span id="dungeonWave" style="color:#a29bfe; font-weight:bold;">1</span></div>
+            <div class="big-icon" id="dungeonMobIcon">👻</div>
+            <div class="status" id="dungeonMobName">동굴 유령</div>
+            <div class="bar-container"><div class="dungeon-hp-bar" id="dungeonMobHpBar"></div><div class="hp-text" id="dungeonMobHpText">? / ?</div></div>
+            <div style="font-size:12px; text-align:left; margin-left:20px; margin-top:5px;">❤️ MY HP</div>
+            <div class="bar-container"><div class="player-hp-bar" id="playerHpBarDungeon"></div><div class="hp-text" id="playerHpTextDungeon">1000 / 1000</div></div>
+            <div class="log-box" id="dungeonLog">동굴에 들어왔습니다.</div>
+            <div class="skill-container" id="dungeonSkills"></div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn-dungeon" style="width:70%" onclick="attackDungeonMonster()">⚔️ 공격</button>
+                <button class="btn-auto-attack" id="btnAutoDungeon" style="width:30%" onclick="toggleAutoAttack(true)">🤖 자동</button>
+            </div>
+            <!-- 물약 컨트롤 -->
+            <div style="display:flex; justify-content:center; gap:2px; margin-top:2px;">
+                <button class="btn-potion-hp" onclick="drinkPotion('hp')">🧪 HP</button>
+                <button class="btn-potion-atk" onclick="drinkPotion('atk')">⚔️ x2</button>
+                <button class="btn-potion-def" onclick="drinkPotion('def')">🛡️ x2</button>
+            </div>
+            <div style="display:flex; justify-content:center; gap:2px; margin-top:2px;">
+                <button class="btn-super-hp" onclick="drinkSuperPotion('hp')">🧪 MAX x50</button>
+                <button class="btn-super-atk" onclick="drinkSuperPotion('atk')">⚔️ x50</button>
+                <button class="btn-super-def" onclick="drinkSuperPotion('def')">🛡️ x100</button>
+            </div>
+            <button class="btn-town" onclick="leaveDungeon()">🏃 도망가기</button>
+        </div>
+
+        <!-- 레이드 선택 -->
         <div id="raidSelectScreen" class="screen">
-            <h2>🔥 레이드 선택</h2>
-            <div class="log-box">고죠 사토루 vs 스쿠나의 대결</div>
+            <h2>🔥 레이드 선택 (티켓 필요)</h2>
+            <div class="log-box">입장 시 티켓 1장이 소모됩니다.</div>
             <div style="display:flex; flex-wrap:wrap; justify-content:center;">
                 <button class="btn-raid" onclick="startRaid('hell')">🔥 지옥의 파수꾼</button>
                 <button class="btn-reaper" onclick="startRaid('reaper')">💀 사신</button>
@@ -229,11 +375,16 @@
                 <button class="btn-phoenix" onclick="startRaid('phoenix')">🦅 불사조</button>
                 <button class="btn-joker" onclick="startRaid('joker')">🤡 조커</button>
                 <button class="btn-1x" onclick="startRaid('1x1x1x1')">🔳 1x1x1x1</button> 
+                <button class="btn-dual-scythe" onclick="startRaid('dual_scythe')">⚔️💀 듀얼 낫</button> 
                 <button class="btn-gojo" onclick="startRaid('gojo')">🤞 고죠 사토루</button>
+                <button class="btn-god" onclick="startRaid('god')">🌟 절대신</button>
+                <!-- 신규 레이드 -->
+                <button class="btn-raid" style="width:98%; border:2px solid gold; box-shadow:0 0 10px gold;" onclick="startRaid('dragon_god')">🐲 진: 드래곤 (신보다 강함)</button>
             </div>
             <button class="btn-town" onclick="changeScreen('townScreen')">🔙 돌아가기</button>
         </div>
 
+        <!-- 숲 -->
         <div id="forestScreen" class="screen">
             <h2>🌲 신비한 숲</h2>
             <div class="big-icon">🪓</div>
@@ -242,79 +393,155 @@
             <button class="btn-town" onclick="changeScreen('townScreen')">🏰 마을로 돌아가기</button>
         </div>
 
+        <!-- 사냥터 -->
         <div id="fieldScreen" class="screen">
             <h2>☠️ 위험한 사냥터</h2>
             <div class="big-icon" id="monsterIcon">❓</div>
             <div class="status" id="monsterInfo">탐색 중...</div>
             <div class="log-box" id="battleLog">야생의 몬스터가 나타났다!</div>
             <div class="skill-container" id="battleSkills"></div>
-            <button class="btn-field" id="attackBtn" onclick="attackMonster()">⚔️ 공격하기</button>
-            <button class="btn-field" id="nextMonsterBtn" onclick="spawnMonster()" style="display:none;">🔍 다음 몬스터</button>
+            <div style="display:flex; gap:5px;">
+                <button class="btn-field" id="attackBtn" style="width:70%" onclick="attackMonster()">⚔️ 공격하기</button>
+                <button class="btn-field" id="nextMonsterBtn" style="width:70%; display:none;" onclick="spawnMonster()">🔍 다음 몬스터</button>
+                <button class="btn-auto-attack" id="btnAutoField" style="width:30%" onclick="toggleAutoAttack(false)">🤖 자동</button>
+            </div>
             <button class="btn-town" onclick="changeScreen('townScreen')">🏃 도망가기</button>
         </div>
 
+        <!-- 레이드 전투 -->
         <div id="raidScreen" class="screen">
             <h2 id="raidTitle">🔥 레이드</h2>
             <div class="big-icon" id="raidBossIcon">👿</div>
-            
             <div style="font-size:12px; text-align:left; margin-left:20px;">👿 BOSS HP</div>
-            <div class="bar-container">
-                <div class="boss-hp-bar" id="raidHpBar"></div>
-                <div class="hp-text" id="raidHpText">100 / 100</div>
-            </div>
-
+            <div class="bar-container"><div class="boss-hp-bar" id="raidHpBar"></div><div class="hp-text" id="raidHpText">100 / 100</div></div>
             <div style="font-size:12px; text-align:left; margin-left:20px; margin-top:5px;">❤️ MY HP</div>
-            <div class="bar-container">
-                <div class="player-hp-bar" id="playerHpBar"></div>
-                <div class="hp-text" id="playerHpText">1000 / 1000</div>
-            </div>
-
+            <div class="bar-container"><div class="player-hp-bar" id="playerHpBar"></div><div class="hp-text" id="playerHpText">1000 / 1000</div></div>
             <div class="log-box" id="raidLog">전투 시작!</div>
             <div class="skill-container" id="raidSkills"></div>
-
             <button class="btn-raid" id="btnRaidAttack" onclick="attackRaidBoss()">🏹 보스 공격하기</button>
             <button class="btn-prison" id="btnPrisonRealm" onclick="usePrisonRealm()">📦 옥문강 봉인 (즉시 처치)</button>
             
-            <button class="btn-potion" onclick="drinkPotion()">🧪 물약 (HP 회복)</button>
+            <div style="display:flex; justify-content:center; gap:2px; margin-top:2px;">
+                <button class="btn-potion-hp" onclick="drinkPotion('hp')">🧪 HP</button>
+                <button class="btn-potion-atk" onclick="drinkPotion('atk')">⚔️ x2</button>
+                <button class="btn-potion-def" onclick="drinkPotion('def')">🛡️ x2</button>
+            </div>
+            <div style="display:flex; justify-content:center; gap:2px; margin-top:2px;">
+                <button class="btn-super-hp" onclick="drinkSuperPotion('hp')">🧪 MAX x50</button>
+                <button class="btn-super-atk" onclick="drinkSuperPotion('atk')">⚔️ x50</button>
+                <button class="btn-super-def" onclick="drinkSuperPotion('def')">🛡️ x100</button>
+            </div>
             <button class="btn-town" onclick="changeScreen('townScreen')">🏃 도망가기</button>
         </div>
-
     </div>
 
     <script>
+        // === 🎵 사운드 시스템 ===
+        const AudioEngine = {
+            ctx: null, isMuted: true, currentTheme: 'town',
+            init: function() { 
+                try {
+                    if(!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); this.isMuted = false; document.getElementById('musicBar').innerText = "🔊 소리 켜짐 (BGM 재생 중)"; this.playBGM(this.currentTheme); } 
+                    else if (this.ctx.state === 'suspended') { this.ctx.resume(); } 
+                } catch(e) { console.log("Audio Init Failed"); }
+            },
+            playTone: function(freq, type, duration, vol=0.1) { if(!this.ctx || this.isMuted) return; try { const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime); gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + duration); } catch(e) {} },
+            sfx: {
+                attack: () => { AudioEngine.playTone(150, 'sawtooth', 0.1); AudioEngine.playTone(100, 'square', 0.1); },
+                hit: () => AudioEngine.playTone(80, 'sawtooth', 0.2),
+                coin: () => { AudioEngine.playTone(1200, 'sine', 0.1); setTimeout(()=>AudioEngine.playTone(1600, 'sine', 0.2), 50); },
+                levelUp: () => { [440, 554, 659, 880].forEach((f, i) => setTimeout(() => AudioEngine.playTone(f, 'square', 0.3), i * 100)); },
+                gacha: () => { for(let i=0; i<10; i++) setTimeout(() => AudioEngine.playTone(200 + i*100, 'triangle', 0.05), i * 50); },
+                glitch: () => { for(let i=0; i<5; i++) setTimeout(() => AudioEngine.playTone(Math.random()*1000, 'sawtooth', 0.05), i * 30); },
+                potion: () => { AudioEngine.playTone(600, 'sine', 0.2); AudioEngine.playTone(800, 'sine', 0.2); }
+            },
+            bgmInterval: null,
+            playBGM: function(theme) {
+                if(this.bgmInterval) clearInterval(this.bgmInterval); this.currentTheme = theme; if(!this.ctx || this.isMuted) return;
+                let notes = [], speed = 400, waveType = 'sine';
+                if(theme === 'town') { notes = [523, 659, 784, 1046, 784, 659]; speed = 300; waveType = 'triangle'; } 
+                else if(theme === 'dungeon') { notes = [110, 116, 123, 116]; speed = 600; waveType = 'sawtooth'; } 
+                else if(theme === 'hell') { notes = [100, 200, 150, 300, 100]; speed = 150; waveType = 'square'; } 
+                else if(theme === 'heaven') { notes = [880, 987, 1046, 1318]; speed = 800; waveType = 'sine'; } 
+                else if(theme === 'skeleton') { notes = [130, 123, 110, 100, 90]; speed = 250; waveType = 'sawtooth'; }
+                else if(theme === 'dragon') { notes = [55, 60, 55, 110]; speed = 800; waveType = 'sawtooth'; }
+                else if(theme === 'raid') { notes = [110, 110, 110, 146]; speed = 200; waveType = 'sawtooth'; }
+                else if(theme === 'god') { notes = [1046, 1174, 1318, 1568, 1318]; speed = 400; waveType = 'sine'; }
+                else if(theme === 'christmas') { notes = [659, 659, 659, 659, 659, 659, 659, 784, 523, 587, 659]; speed = 250; waveType = 'sine'; } // Jingle Bells simple
+                let idx = 0;
+                this.bgmInterval = setInterval(() => {
+                    if(this.ctx.state === 'running') { try { const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); osc.type = waveType; osc.frequency.setValueAtTime(notes[idx], this.ctx.currentTime); gain.gain.setValueAtTime(0.03, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + (speed/1000)); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + (speed/1000)); idx = (idx + 1) % notes.length; } catch(e) {} }
+                }, speed);
+            }
+        };
+        function initAudio() { AudioEngine.init(); }
+
         // === 💾 데이터 ===
         let gameData = {
             coins: 0,
             weaponLevel: 0,
-            maxArmorLevel: 0, 
-            equippedArmorLevel: 0,
-            potions: 5,
-            prisonRealm: 0, 
-            sukunaFingers: 0,
-            eatenFingers: 0,
+            maxArmorLevel: 0, equippedArmorLevel: 0,
+            potions: 5, damagePotions: 0, defensePotions: 0, 
+            
+            // 초월 물약
+            superPotionHp: 0, superPotionAtk: 0, superPotionDef: 0,
+
+            prisonRealm: 0, sukunaFingers: 0, eatenFingers: 0,
+            currentDungeonWave: 1, 
+            raidTickets: 0, 
             
             hasHellBow: false, hasDragonflyNet: false, hasAdminWeapon: false, hasScythe: false, hasDualDagger: false,
             hasHydraStaff: false, hasHydraAxe: false, hasHydraAnchor: false, hasHydraSword: false,
             hasPhoenixWing: false, hasJokerCard: false,
             has1xSword: false, has1xBow: false, has1xComputer: false, has1xCrown: false,
-            hasGojoBlindfold: false,
-            hasSukunaFinger: false, 
+            hasDualScythe: false, hasGojoBlindfold: false, hasSukunaFinger: false, hasGlitchGuitar: false,
+            hasGlitchChainsaw: false, 
             
-            equippedSkinName: null
+            hasGodBead: false, hasDevilHorn: false, hasAngelRing: false, hasSpineHand: false, 
+
+            // 거래 아이템 & 신규 아이템
+            hasDragonFan: false, hasDragonHead: false, hasDragonDagger: false,
+            hasDragonClone: false, // 드래곤 클론 (단검보다 약함)
+            hasDragonWing: false, // 드래곤 날개 (버프 아이템)
+            hasDragonWhip: false, // 드래곤 채찍
+
+            // 크리스마스 아이템 (신규)
+            hasCandyScythe: false, // 캔디 낫
+            hasCandyKatana: false, // 캔디 카타나
+            hasCandyStaff: false, // 캔디 지팡이
+
+            hasThornArmor: false, 
+            equippedSkinName: null, equippedArmorName: null
         };
 
-        let playerCurrentHp = 1000;
-        let playerMaxHp = 1000;
-        let raidHp = 10000000;
-        let raidMaxHp = 10000000;
-        let currentRaidType = 'hell';
-        
-        let skillCD = { Z: 0, X: 0, C: 0, V: 0 };
-        const MAX_CD = { Z: 5000, X: 10000, C: 20000, V: 60000 };
-        let isAutoWeapon = false;
-        let isAutoArmor = false;
+        const monsters = [
+            { level: 0, name: "슬라임", icon: "💧" },
+            { level: 10, name: "늑대", icon: "🐺" },
+            { level: 30, name: "고블린", icon: "👺" },
+            { level: 50, name: "오크", icon: "👹" },
+            { level: 100, name: "골렘", icon: "🗿" },
+            { level: 200, name: "트롤", icon: "🧟" },
+            { level: 400, name: "와이번", icon: "🦎" },
+            { level: 700, name: "드래곤", icon: "🐉" },
+            { level: 1000, name: "마왕", icon: "👿" },
+            { level: 2000, name: "절대신", icon: "⚡" }
+        ];
 
-        // 🔥 무기 DB 대거 확장 (200 ~ 490 구간 추가)
+        let playerCurrentHp = 1000, playerMaxHp = 1000, raidHp = 10000000, raidMaxHp = 10000000;
+        let dungeonWave = 1, dungeonMobHp = 100, dungeonMobMaxHp = 100;
+        let isAutoAttack = false, autoAttackInterval = null;
+        let skillCD = { Z: 0, X: 0, C: 0, V: 0, B: 0 };
+        const MAX_CD = { Z: 3000, X: 8000, C: 15000, V: 45000, B: 300000 };
+        let skillActiveTime = { Z: 0, X: 0, C: 0, V: 0, B: 0 };
+
+        let isAutoWeapon = false, isAutoArmor = false;
+        let currentRaidType = 'hell';
+        let dungeonMode = 'normal'; // 'normal' | 'christmas'
+        
+        let buffDamageMult = 1;
+        let buffDefenseMult = 1;
+        let buffTimers = { atk: null, def: null };
+
         const weaponDB = [
             { lv: 0, name: "낡은 검", icon: "🗡️" }, { lv: 10, name: "골드바", icon: "🧈" }, { lv: 20, name: "신화의 활", icon: "🏹" },
             { lv: 35, name: "너클", icon: "👊" }, { lv: 50, name: "화염방사기", icon: "🔥" }, { lv: 65, name: "미니건", icon: "🚁" },
@@ -325,18 +552,42 @@
             { lv: 180, name: "카타나", icon: "⚔️" }, { lv: 190, name: "표창", icon: "💠" }, { lv: 195, name: "카메라", icon: "📸" },
             { lv: 200, name: "저격소총", icon: "🔫" },
             
-            // 🆕 200 ~ 490 구간 추가
-            { lv: 210, name: "레이저 포", icon: "🔫" },
-            { lv: 230, name: "토르의 망치", icon: "🔨" },
-            { lv: 250, name: "양자 검", icon: "🗡️" },
-            { lv: 280, name: "데스 노트", icon: "📓" },
-            { lv: 300, name: "엑스칼리버", icon: "⚔️" },
-            { lv: 330, name: "핵미사일", icon: "🚀" },
-            { lv: 360, name: "타노스 장갑", icon: "🧤" },
-            { lv: 400, name: "행성 파괴자", icon: "🪐" },
-            { lv: 440, name: "블랙홀 생성기", icon: "⚫" },
-            { lv: 480, name: "차원 절단기", icon: "🌀" },
-            { lv: 490, name: "반전 술식", icon: "🔄" }
+            { lv: 210, name: "레이저 포", icon: "🔫" }, { lv: 230, name: "토르의 망치", icon: "🔨" }, { lv: 250, name: "양자 검", icon: "🗡️" },
+            { lv: 280, name: "데스 노트", icon: "📓" }, { lv: 300, name: "엑스칼리버", icon: "⚔️" }, { lv: 330, name: "핵미사일", icon: "🚀" },
+            { lv: 360, name: "타노스 장갑", icon: "🧤" }, { lv: 400, name: "행성 파괴자", icon: "🪐" }, { lv: 440, name: "블랙홀 생성기", icon: "⚫" },
+            { lv: 480, name: "차원 절단기", icon: "🌀" }, { lv: 490, name: "반전 술식", icon: "🔄" },
+
+            { lv: 510, name: "용의 여의주", icon: "🔮" }, { lv: 520, name: "포세이돈의 삼지창", icon: "🔱" }, { lv: 530, name: "제우스의 번개", icon: "⚡" },
+            { lv: 540, name: "하데스의 투구", icon: "🪖" }, { lv: 550, name: "천사의 날개", icon: "👼" }, { lv: 560, name: "타락한 성검", icon: "🗡️" },
+            { lv: 570, name: "궁그닐", icon: "🔱" }, { lv: 580, name: "게 볼그", icon: "🩸" }, { lv: 590, name: "론기누스의 창", icon: "🧬" },
+            
+            { lv: 600, name: "태양의 파편", icon: "☀️" }, { lv: 610, name: "퀘이사 방출기", icon: "🌌" }, { lv: 620, name: "암흑 물질 검", icon: "⬛" },
+            { lv: 630, name: "빅뱅 수류탄", icon: "💥" }, { lv: 640, name: "은하수 채찍", icon: "🌌" }, { lv: 650, name: "성운의 지팡이", icon: "🪄" },
+            { lv: 660, name: "중력 붕괴 장치", icon: "📉" }, { lv: 670, name: "혜성 충돌기", icon: "☄️" }, { lv: 680, name: "초신성 폭발", icon: "🌟" },
+            { lv: 690, name: "사상의 지평선", icon: "🕳️" },
+
+            { lv: 700, name: "시간의 톱니바퀴", icon: "⚙️" }, { lv: 710, name: "공간의 균열", icon: "⚡" }, { lv: 720, name: "무한의 큐브", icon: "🧊" },
+            { lv: 730, name: "진리의 서", icon: "📖" }, { lv: 740, name: "공허의 눈", icon: "👁️" }, { lv: 750, name: "존재의 소멸", icon: "❌" },
+            { lv: 760, name: "운명의 가위", icon: "✂️" }, { lv: 770, name: "영혼의 등불", icon: "🏮" }, { lv: 780, name: "차원 도약 장치", icon: "🚀" },
+            { lv: 790, name: "절대 영도", icon: "❄️" },
+
+            { lv: 800, name: "시스템 관리자 권한", icon: "🔑" }, { lv: 810, name: "버그 덩어리", icon: "👾" }, { lv: 820, name: "글리치 소드", icon: "🗡️" },
+            { lv: 830, name: "블루스크린 방패", icon: "🟦" }, { lv: 840, name: "강제 종료 버튼", icon: "⏹️" }, { lv: 850, name: "데이터 삭제", icon: "🗑️" },
+            { lv: 860, name: "코드 조작기", icon: "⌨️" }, { lv: 870, name: "방화벽 해제", icon: "🔥" }, { lv: 880, name: "바이러스 주입", icon: "💉" },
+            { lv: 890, name: "서버 폭파", icon: "💣" },
+
+            { lv: 900, name: "창조의 빛", icon: "✨" }, { lv: 910, name: "파괴의 어둠", icon: "🌑" }, { lv: 920, name: "시작과 끝", icon: "🔄" },
+            { lv: 930, name: "우주 재부팅", icon: "🔌" }, { lv: 940, name: "개발자의 마우스", icon: "🖱️" }, { lv: 950, name: "개발자의 키보드", icon: "⌨️" },
+            { lv: 960, name: "소스 코드", icon: "📜" }, { lv: 970, name: "엔딩 크레딧", icon: "🎬" }, { lv: 980, name: "제4의 벽", icon: "🧱" },
+            { lv: 990, name: "전지전능", icon: "👑" }, { lv: 1000, name: "[THE END]", icon: "🏁" },
+
+            { lv: 1010, name: "디지털 소울", icon: "💾" }, { lv: 1050, name: "양자 얽힘 낫", icon: "🧬" }, { lv: 1100, name: "슈뢰딩거의 검", icon: "🐈" },
+            { lv: 1150, name: "타임 패러독스", icon: "⏳" }, { lv: 1200, name: "나비 효과", icon: "🦋" }, { lv: 1250, name: "평행우주 열쇠", icon: "🔑" },
+            { lv: 1300, name: "아카식 레코드", icon: "📚" }, { lv: 1350, name: "천상의 나팔", icon: "🎺" }, { lv: 1400, name: "루시퍼의 뿔", icon: "👿" },
+            { lv: 1450, name: "미카엘의 검", icon: "⚔️" }, { lv: 1500, name: "빅 크런치", icon: "🌌" }, { lv: 1550, name: "엔트로피 역전", icon: "↩️" },
+            { lv: 1600, name: "암흑 에너지 포", icon: "🔫" }, { lv: 1650, name: "무한의 계단", icon: "🪜" }, { lv: 1700, name: "뫼비우스의 띠", icon: "♾️" },
+            { lv: 1750, name: "이데아의 형상", icon: "🗿" }, { lv: 1800, name: "작가의 펜", icon: "✒️" }, { lv: 1850, name: "설정 붕괴", icon: "💥" },
+            { lv: 1900, name: "데우스 엑스 마키나", icon: "🤖" }, { lv: 1950, name: "게임 엔진", icon: "⚙️" }, { lv: 2000, name: "절대적 존재", icon: "👁️" }
         ];
 
         const armorDB = [
@@ -344,153 +595,518 @@
             { lv: 30, name: "다이아 갑옷", icon: "💎", hp: 100000 }, { lv: 40, name: "에메랄드 갑옷", icon: "❇️", hp: 500000 }, { lv: 50, name: "신의 갑옷", icon: "👼", hp: 2000000 },
             { lv: 60, name: "괴물의 가죽", icon: "👹", hp: 5000000 }, { lv: 70, name: "지옥의 갑주", icon: "🔥", hp: 10000000 }, { lv: 100, name: "사이보그 갑옷", icon: "🤖", hp: 50000000 },
             { lv: 110, name: "외계인 갑옷", icon: "👽", hp: 200000000 }, { lv: 120, name: "불 갑옷", icon: "🔥", hp: 500000000 }, { lv: 130, name: "물 갑옷", icon: "💧", hp: 1000000000 }, { lv: 140, name: "전기 갑옷", icon: "⚡", hp: 2000000000 },
-            { lv: 150, name: "블랙홀 갑옷", icon: "🌌", hp: 50000000000 }
+            { lv: 150, name: "블랙홀 갑옷", icon: "🌌", hp: 50000000000 },
+            { lv: 200, name: "나노 슈트", icon: "🧬", hp: 100000000000 }, { lv: 300, name: "비브라늄 갑옷", icon: "🛡️", hp: 500000000000 },
+            { lv: 500, name: "항성 갑옷", icon: "☀️", hp: 2000000000000 }, { lv: 800, name: "은하수 망토", icon: "🌌", hp: 10000000000000 },
+            { lv: 1000, name: "신의 권능", icon: "👑", hp: 50000000000000 }, { lv: 1500, name: "차원의 지배자", icon: "🌀", hp: 100000000000000 },
+            { lv: 2000, name: "개발자의 후드티", icon: "💻", hp: 999999999999999 }
         ];
 
-        const monsters = [
-            { level: 0, name: "슬라임", icon: "💧", reward: 50 }, { level: 30, name: "스켈레톤", icon: "💀", reward: 1500 }, { level: 80, name: "크라켄", icon: "🦑", reward: 50000 }, 
-            { level: 120, name: "우주괴물", icon: "👾", reward: 500000 }, { level: 160, name: "고대 거미", icon: "🕷️", reward: 1500000 },
-            { level: 180, name: "사무라이", icon: "🤺", reward: 3000000 }, { level: 200, name: "절대신", icon: "👑", reward: 10000000 },
-            { level: 400, name: "차원 포식자", icon: "🪐", reward: 50000000 }
-        ];
-
-        // === 시스템 ===
-        function saveGame() { localStorage.setItem("rpg_v31_save", JSON.stringify(gameData)); }
+        function saveGame() { 
+            gameData.currentDungeonWave = dungeonWave; 
+            localStorage.setItem("rpg_v48_xmas_save", JSON.stringify(gameData)); 
+        }
         function manualSave() { saveGame(); alert("저장 완료!"); }
         function loadGame() {
-            const saved = localStorage.getItem("rpg_v31_save");
+            const saved = localStorage.getItem("rpg_v48_xmas_save");
             if(saved) {
                 let parsed = JSON.parse(saved);
                 if(parsed.armorLevel !== undefined && parsed.maxArmorLevel === undefined) { parsed.maxArmorLevel = parsed.armorLevel; parsed.equippedArmorLevel = parsed.armorLevel; }
                 gameData = { ...gameData, ...parsed };
+                if(gameData.currentDungeonWave) dungeonWave = gameData.currentDungeonWave;
             }
+            // 변수 초기화 안전장치
             if(isNaN(gameData.coins)) gameData.coins = 0;
             if(isNaN(gameData.weaponLevel)) gameData.weaponLevel = 0;
             if(isNaN(gameData.potions)) gameData.potions = 5;
+            if(isNaN(gameData.damagePotions)) gameData.damagePotions = 0; 
+            if(isNaN(gameData.defensePotions)) gameData.defensePotions = 0; 
+            if(isNaN(gameData.superPotionHp)) gameData.superPotionHp = 0; 
+            if(isNaN(gameData.superPotionAtk)) gameData.superPotionAtk = 0; 
+            if(isNaN(gameData.superPotionDef)) gameData.superPotionDef = 0; 
             if(isNaN(gameData.prisonRealm)) gameData.prisonRealm = 0;
             if(isNaN(gameData.sukunaFingers)) gameData.sukunaFingers = 0;
             if(isNaN(gameData.eatenFingers)) gameData.eatenFingers = 0;
-            
+            if(isNaN(gameData.raidTickets)) gameData.raidTickets = 0; 
+            if(isNaN(dungeonWave)) dungeonWave = 1;
+
             renderWeaponInventory(); renderArmorInventory(); updateUI();
         }
-        function resetGame() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem("rpg_v31_save"); location.reload(); } }
+        function resetGame() { if(confirm("초기화 하시겠습니까?")) { localStorage.removeItem("rpg_v48_xmas_save"); location.reload(); } }
         setInterval(saveGame, 10000);
+        setInterval(updateSkillCoolDowns, 100);
 
         function useCode() {
             const input = document.getElementById('codeInput').value.trim();
-            if (input === 'dlalsgh1215') { gameData.coins += 10000000000; queueReward("100억 코인", "💰"); }
-            else if (input === 'yyyuy') { gameData.prisonRealm += 10; queueReward("옥문강 10개", "📦"); }
-            else if (input === 'gg100k') { if(!gameData.hasDragonflyNet) { gameData.hasDragonflyNet=true; queueReward("잠자리채", "🕸️"); renderWeaponInventory(); } }
-            else if (input === '67') { if(!gameData.hasAdminWeapon) { gameData.hasAdminWeapon=true; queueReward("67 무기", "6️⃣7️⃣"); renderWeaponInventory(); } }
-            // 신규 코드: gg
-            else if (input === 'gg') { 
-                gameData.sukunaFingers += 5; 
-                if(!gameData.hasSukunaFinger) {
-                    gameData.hasSukunaFinger = true;
-                    queueReward("스쿠나의 손가락(무기)", "🧟");
-                }
-                queueReward("손가락 5개", "🧟");
-                renderWeaponInventory();
-            }
+            let valid = false;
+            if (input === 'dlalsgh1215') { gameData.coins += 10000000000; queueReward("100억 코인", "💰"); AudioEngine.sfx.coin(); valid=true; }
+            else if (input === 'yyyuy') { gameData.prisonRealm += 10; queueReward("옥문강 10개", "📦"); AudioEngine.sfx.gacha(); valid=true; }
+            else if (input === 'gg100k') { if(!gameData.hasDragonflyNet) { gameData.hasDragonflyNet=true; queueReward("잠자리채", "🕸️"); renderWeaponInventory(); } valid=true; }
+            else if (input === '67') { if(!gameData.hasAdminWeapon) { gameData.hasAdminWeapon=true; queueReward("67 무기", "6️⃣7️⃣"); renderWeaponInventory(); } valid=true; }
+            else if (input === 'gg') { gameData.sukunaFingers += 5; if(!gameData.hasSukunaFinger) { gameData.hasSukunaFinger = true; queueReward("스쿠나의 손가락(무기)", "🧟"); } queueReward("손가락 5개", "🧟"); renderWeaponInventory(); AudioEngine.sfx.gacha(); valid=true; }
+            else if (input === '444') { if(!gameData.hasThornArmor) { gameData.hasThornArmor = true; queueReward("가시 갑옷", "🌵"); renderArmorInventory(); AudioEngine.sfx.gacha(); } else { alert("이미 보유 중입니다."); } valid=true; }
+            else if (input === 'eg') { gameData.potions += 100; gameData.damagePotions += 100; gameData.defensePotions += 100; queueReward("물약 세트 (각 100개)", "🧪"); AudioEngine.sfx.potion(); valid=true; }
+            else if (input === '1234') { gameData.raidTickets += 50; queueReward("레이드 티켓 50장", "🎟️"); AudioEngine.sfx.gacha(); valid=true; } 
+            else if (input === 'xmas2025') { gameData.hasCandyStaff = true; gameData.hasCandyScythe = true; gameData.hasCandyKatana = true; queueReward("크리스마스 선물 세트", "🎁"); renderWeaponInventory(); valid=true;}
             else { alert("❌ 틀린 코드입니다."); }
-            document.getElementById('codeInput').value = ""; saveGame(); updateUI();
+            document.getElementById('codeInput').value = ""; if(valid) { saveGame(); updateUI(); }
         }
 
-        // === 스쿠나 손가락 섭취 시스템 ===
         function eatFinger() {
-            if(gameData.sukunaFingers > 0) {
-                gameData.sukunaFingers--;
-                gameData.eatenFingers++;
-                log('town', `🧟 꿀꺽.. 힘이 솟아난다! (데미지 x${Math.pow(2, gameData.eatenFingers).toLocaleString()})`);
-                updateUI();
-                saveGame();
-            } else {
-                alert("먹을 손가락이 없습니다!");
+            if(gameData.sukunaFingers > 0) { gameData.sukunaFingers--; gameData.eatenFingers++; log('town', `🧟 꿀꺽.. 힘이 솟아난다! (데미지 x${Math.pow(2, gameData.eatenFingers).toLocaleString()})`); AudioEngine.sfx.levelUp(); updateUI(); saveGame(); } else { alert("먹을 손가락이 없습니다!"); }
+        }
+
+        // === 🦋 드래곤 날개 사용 ===
+        function useDragonWing() {
+            if(!gameData.hasDragonWing) return;
+            // 1시간 = 3600초 = 3600000ms
+            buffDamageMult = 1000;
+            buffDefenseMult = 0.001; // 받는 피해 1/1000
+            
+            // 기존 타이머 제거
+            if(buffTimers.atk) clearTimeout(buffTimers.atk);
+            if(buffTimers.def) clearTimeout(buffTimers.def);
+
+            // 1시간 후 버프 종료 타이머
+            buffTimers.atk = setTimeout(() => { buffDamageMult = 1; updateBuffIcons(); alert("드래곤 날개 버프(공격) 종료"); }, 3600000);
+            buffTimers.def = setTimeout(() => { buffDefenseMult = 1; updateBuffIcons(); alert("드래곤 날개 버프(방어) 종료"); }, 3600000);
+            
+            updateBuffIcons();
+            log('town', "🦋 드래곤 날개 사용! (1시간 동안 모든 능력치 1000배)");
+            alert("🦋 드래곤 날개를 펼쳤습니다!\n1시간 동안 공격력/방어력이 1000배가 됩니다.");
+        }
+
+        // === 상인 시스템 ===
+        function buyItem(type) {
+            let cost = 0;
+            let name = "";
+            
+            if (type === 'dragonFan') { cost = 100000000; name = "드래곤 부채"; }
+            else if (type === 'dragonClone') { cost = 150000000; name = "드래곤 클론"; } // 단검보다 쌈
+            else if (type === 'dragonHead') { cost = 200000000; name = "드래곤 헤드"; }
+            else if (type === 'dragonDagger') { cost = 500000000; name = "드래곤 단검"; }
+            else if (type === 'superHp') { cost = 5000000; name = "초월 HP 물약"; }
+            else if (type === 'superAtk') { cost = 5000000; name = "초월 공격 물약"; }
+            else if (type === 'superDef') { cost = 5000000; name = "초월 방어 물약"; }
+
+            if (gameData.coins < cost) { alert("돈이 부족합니다!"); return; }
+            
+            if (type === 'dragonFan') { if(gameData.hasDragonFan) { alert("이미 보유 중입니다."); return; } gameData.hasDragonFan = true; renderWeaponInventory(); }
+            else if (type === 'dragonClone') { if(gameData.hasDragonClone) { alert("이미 보유 중입니다."); return; } gameData.hasDragonClone = true; renderWeaponInventory(); }
+            else if (type === 'dragonHead') { if(gameData.hasDragonHead) { alert("이미 보유 중입니다."); return; } gameData.hasDragonHead = true; renderArmorInventory(); }
+            else if (type === 'dragonDagger') { if(gameData.hasDragonDagger) { alert("이미 보유 중입니다."); return; } gameData.hasDragonDagger = true; renderWeaponInventory(); }
+            else if (type === 'superHp') { gameData.superPotionHp++; }
+            else if (type === 'superAtk') { gameData.superPotionAtk++; }
+            else if (type === 'superDef') { gameData.superPotionDef++; }
+
+            gameData.coins -= cost;
+            alert(`${name} 구매 완료!`);
+            saveGame();
+            updateUI();
+            AudioEngine.sfx.coin();
+        }
+
+        // === 물약 시스템 (초월 물약 추가) ===
+        function drinkPotion(type) {
+            if (type === 'hp') { if(gameData.potions > 0) { gameData.potions--; playerCurrentHp = playerMaxHp; log('raid', "체력 회복!"); if(document.getElementById('dungeonScreen').classList.contains('active')) updateDungeonHP(); else updateRaidUI(); } else log('town', "HP 물약 부족!"); } 
+            else if (type === 'atk') { 
+                if(gameData.damagePotions > 0) { 
+                    gameData.damagePotions--; 
+                    buffDamageMult = 2; 
+                    if(buffTimers.atk) clearTimeout(buffTimers.atk);
+                    buffTimers.atk = setTimeout(() => { buffDamageMult = 1; updateBuffIcons(); }, 30000); 
+                    alert("⚔️ 30초간 공격력 2배! (날개 버프가 있었다면 해제됩니다)"); 
+                } else log('town', "공격 물약 부족!"); 
+            } 
+            else if (type === 'def') { 
+                if(gameData.defensePotions > 0) { 
+                    gameData.defensePotions--; 
+                    buffDefenseMult = 0.5; 
+                    if(buffTimers.def) clearTimeout(buffTimers.def);
+                    buffTimers.def = setTimeout(() => { buffDefenseMult = 1; updateBuffIcons(); }, 30000); 
+                    alert("🛡️ 30초간 방어력 2배! (날개 버프가 있었다면 해제됩니다)"); 
+                } else log('town', "방어 물약 부족!"); 
             }
+            AudioEngine.sfx.potion(); updateUI(); updateBuffIcons();
         }
 
-        // === 🎁 보상 큐 시스템 ===
-        let rewardQueue = [];
-        let isShowingReward = false;
-
-        function queueReward(name, icon) {
-            rewardQueue.push({name, icon});
-            if(!isShowingReward) showNextReward();
+        function drinkSuperPotion(type) {
+            if (type === 'hp') { 
+                if(gameData.superPotionHp > 0) { 
+                    gameData.superPotionHp--; 
+                    playerCurrentHp = playerMaxHp * 50; // 초월 회복 (일시적 오버힐)
+                    log('raid', "초월 체력 회복!"); 
+                    if(document.getElementById('dungeonScreen').classList.contains('active')) updateDungeonHP(); else updateRaidUI(); 
+                } else alert("초월 HP 물약이 없습니다!"); 
+            } 
+            else if (type === 'atk') { 
+                if(gameData.superPotionAtk > 0) { 
+                    gameData.superPotionAtk--; 
+                    buffDamageMult = 50; 
+                    if(buffTimers.atk) clearTimeout(buffTimers.atk);
+                    buffTimers.atk = setTimeout(() => { buffDamageMult = 1; updateBuffIcons(); }, 30000); 
+                    alert("⚔️ 30초간 공격력 50배! (날개 버프가 있었다면 해제됩니다)"); 
+                } else alert("초월 공격 물약이 없습니다!"); 
+            } 
+            else if (type === 'def') { 
+                if(gameData.superPotionDef > 0) { 
+                    gameData.superPotionDef--; 
+                    buffDefenseMult = 0.01; // 데미지 1/100
+                    if(buffTimers.def) clearTimeout(buffTimers.def);
+                    buffTimers.def = setTimeout(() => { buffDefenseMult = 1; updateBuffIcons(); }, 30000); 
+                    alert("🛡️ 30초간 방어력 100배! (날개 버프가 있었다면 해제됩니다)"); 
+                } else alert("초월 방어 물약이 없습니다!"); 
+            }
+            AudioEngine.sfx.potion(); updateUI(); updateBuffIcons();
         }
 
+        function updateBuffIcons() { const container = document.getElementById('buffIcons'); container.innerHTML = ""; if(buffDamageMult > 1) container.innerHTML += `<div>⚔️ x${buffDamageMult}</div>`; if(buffDefenseMult < 1) container.innerHTML += `<div>🛡️ x${Math.round(1/buffDefenseMult)}</div>`; }
+        function dropRandomPotion() { let rand = Math.random(); if(rand < 0.33) { gameData.potions++; return "🧪 HP물약"; } else if(rand < 0.66) { gameData.damagePotions++; return "⚔️ 공격물약"; } else { gameData.defensePotions++; return "🛡️ 방어물약"; } }
+
+        let rewardQueue = []; let isShowingReward = false;
+        function queueReward(name, icon) { rewardQueue.push({name, icon}); if(!isShowingReward) showNextReward(); }
         function showNextReward() {
-            if(rewardQueue.length === 0) {
-                isShowingReward = false;
-                document.getElementById('rewardOverlay').style.display = 'none';
-                if(document.getElementById('raidScreen').classList.contains('active') && raidHp <= 0) {
-                    changeScreen('townScreen');
+            if(rewardQueue.length === 0) { isShowingReward = false; document.getElementById('rewardOverlay').style.display = 'none'; if(document.getElementById('raidScreen').classList.contains('active') && raidHp <= 0) changeScreen('townScreen'); return; }
+            isShowingReward = true; let reward = rewardQueue.shift(); document.getElementById('rewardName').innerText = reward.name; document.getElementById('rewardIcon').innerText = reward.icon; document.getElementById('rewardOverlay').style.display = 'flex'; AudioEngine.sfx.levelUp();
+        }
+        function nextReward() { showNextReward(); }
+
+        // === ⚔️ 스킬 시스템 (B 버튼 추가) ===
+        function getWeaponSkillInfo() {
+            const weapon = getCurrentDisplayWeapon();
+            let name = weapon.name;
+
+            if(name === "신의 구슬") { return { Z: { mult: 100, name: "창조" }, X: { mult: 200, name: "파괴" }, C: { mult: 400, name: "시간 역행" }, V: { mult: 1000, name: "빅뱅" }, B: { mult: 99999, name: "소멸" } }; }
+            
+            // 크리스마스 스킬
+            if(name === "캔디 낫") return { Z: { mult: 800, name: "사탕 베기" }, X: { mult: 1500, name: "달콤한 죽음" }, C: { mult: 3000, name: "선물 폭탄" }, V: { mult: 80000, name: "크리스마스 악몽" } };
+            if(name === "캔디 카타나") return { Z: { mult: 500, name: "발도" }, X: { mult: 1000, name: "연속 베기" }, C: { mult: 2500, name: "눈꽃 춤" }, V: { mult: 60000, name: "성탄절의 검" } };
+            if(name === "캔디 지팡이") return { Z: { mult: 300, name: "매직 볼" }, X: { mult: 600, name: "지팡이 타격" }, C: { mult: 1200, name: "루돌프 소환" }, V: { mult: 40000, name: "메테오 캔디" } };
+
+            // 신규 무기 스킬
+            if(name === "드래곤 부채") return { Z: { mult: 10, name: "돌풍" }, X: { mult: 20, name: "용오름" }, C: { mult: 40, name: "태풍" }, V: { mult: 80, name: "드래곤 브레스" } };
+            if(name === "드래곤 단검") return { Z: { mult: 500, name: "용의 발톱" }, X: { mult: 1000, name: "역린 찌르기" }, C: { mult: 2000, name: "용의 분노" }, V: { mult: 999999, name: "드래곤 슬레이어" } };
+            // 드래곤 클론 (단검보다 약하게)
+            if(name === "드래곤 클론") return { Z: { mult: 200, name: "카피 발톱" }, X: { mult: 400, name: "환영" }, C: { mult: 800, name: "가짜 분노" }, V: { mult: 50000, name: "이미테이션 어택" } };
+            // 드래곤 채찍 (단검보다 강하게)
+            if(name === "드래곤 채찍") return { Z: { mult: 2000, name: "용의 꼬리치기" }, X: { mult: 4000, name: "화염 휘두르기" }, C: { mult: 8000, name: "속박" }, V: { mult: 9999999, name: "지구 멸망의 채찍" }, B: { mult: 50000000, name: "은하 파괴" } };
+
+
+            if(name === "악마의 뿔") return { Z: { mult: 5, name: "찌르기" }, X: { mult: 10, name: "돌진" }, C: { mult: 20, name: "지옥의 부름" }, V: { mult: 50, name: "악마화" } };
+            if(name === "천사의 링") return { Z: { mult: 6, name: "빛" }, X: { mult: 12, name: "심판" }, C: { mult: 24, name: "축복" }, V: { mult: 60, name: "천벌" } };
+            if(name === "척추 손") return { Z: { mult: 8, name: "할퀴기" }, X: { mult: 16, name: "뼈 감옥" }, C: { mult: 32, name: "죽음의 손길" }, V: { mult: 80, name: "스켈레톤 군단" } };
+
+            if(name === "지옥의 활") return { Z: { mult: 3.0, name: "불화살" }, X: { mult: 4.5, name: "연속 발사" }, C: { mult: 8.0, name: "폭발 화살" }, V: { mult: 15.0, name: "지옥불 비" } };
+            if(name === "사신의 낫") return { Z: { mult: 3.5, name: "영혼 베기" }, X: { mult: 5.0, name: "사신의 춤" }, C: { mult: 10.0, name: "수확" }, V: { mult: 20.0, name: "죽음의 선고" } };
+            if(name === "듀얼 단검") return { Z: { mult: 4.0, name: "더블 스탭" }, X: { mult: 6.0, name: "암습" }, C: { mult: 12.0, name: "그림자 분신" }, V: { mult: 25.0, name: "무한의 칼날" } };
+            if(name.includes("히드라")) return { Z: { mult: 5.0, name: "맹독 주입" }, X: { mult: 8.0, name: "재생의 힘" }, C: { mult: 15.0, name: "머리 재생" }, V: { mult: 30.0, name: "히드라 소환" } };
+            if(name === "불사조 깃털") return { Z: { mult: 6.0, name: "화염 강타" }, X: { mult: 10.0, name: "부활의 불꽃" }, C: { mult: 20.0, name: "불의 날개" }, V: { mult: 40.0, name: "대폭발" } };
+            if(name === "조커 카드") return { Z: { mult: 7.0, name: "카드 투척" }, X: { mult: 12.0, name: "트릭" }, C: { mult: 25.0, name: "로얄 플러시" }, V: { mult: 50.0, name: "조커의 웃음" } };
+            if(name.includes("1x")) return { Z: { mult: 10.0, name: "픽셀 타격" }, X: { mult: 20.0, name: "데이터 오류" }, C: { mult: 40.0, name: "렉 유발" }, V: { mult: 80.0, name: "강제 삭제" } };
+            if(name === "듀얼 낫") return { Z: { mult: 15.0, name: "쌍날 베기" }, X: { mult: 30.0, name: "영혼 폭풍" }, C: { mult: 60.0, name: "지옥의 문" }, V: { mult: 120.0, name: "심판" } };
+            if(name === "검은 안대" || name.includes("고죠")) return { Z: { mult: 50.0, name: "술식 순전: 창" }, X: { mult: 100.0, name: "술식 반전: 혁" }, C: { mult: 200.0, name: "허식: 자" }, V: { mult: 500.0, name: "무량공처" } };
+            if(name === "스쿠나의 손가락") return { Z: { mult: 20, name: "해" }, X: { mult: 40, name: "팔" }, C: { mult: 80, name: "푸가" }, V: { mult: 300, name: "복마어주자" } };
+            if(name === "67 무기") return { Z: { mult: 100, name: "킥" }, X: { mult: 100, name: "밴" }, C: { mult: 100, name: "뮤트" }, V: { fixed: 9999999999, name: "서버 종료" } };
+            if(name === "글리치 기타") return { Z: { mult: 150, name: "노이즈" }, X: { mult: 300, name: "왜곡" }, C: { mult: 600, name: "블루스크린" }, V: { mult: 1200, name: "시스템 붕괴" } };
+            if(name === "글리치 전기톱") return { Z: { mult: 50, name: "시동 걸기" }, X: { mult: 100, name: "난도질" }, C: { mult: 200, name: "엔진 과열" }, V: { mult: 666, name: "시스템 절단" } };
+            
+            return { Z: { mult: 2.0, name: "강타" }, X: { mult: 3.5, name: "연타" }, C: { mult: 5.0, name: "스매시" }, V: { mult: 10.0, name: "궁극기" } };
+        }
+
+        function useSkill(key) {
+            const now = Date.now();
+            if (now < skillCD[key]) return; 
+            const skills = getWeaponSkillInfo();
+            if(!skills[key]) return;
+
+            skillCD[key] = now + MAX_CD[key];
+            skillActiveTime[key] = now; 
+            updateSkillButtons();
+            
+            let skillName = skills[key].name;
+            let logTarget = 'battle';
+            if(document.getElementById('dungeonScreen').classList.contains('active')) logTarget = 'dungeon';
+            if(document.getElementById('raidScreen').classList.contains('active')) logTarget = 'raid';
+            
+            log(logTarget, `[${key}] ${skillName} 발동!`);
+            AudioEngine.sfx.attack();
+            
+            if(document.getElementById('raidScreen').classList.contains('active')) attackRaidBoss();
+            else if(document.getElementById('dungeonScreen').classList.contains('active')) attackDungeonMonster();
+            else if(document.getElementById('fieldScreen').classList.contains('active') && document.getElementById('attackBtn').style.display !== 'none') attackMonster();
+        }
+
+        function updateSkillButtons() {
+            const containers = ['dungeonSkills', 'battleSkills', 'raidSkills'];
+            const skills = getWeaponSkillInfo();
+            const keys = ['Z', 'X', 'C', 'V', 'B']; 
+
+            containers.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el.hasChildNodes()) {
+                    keys.forEach(key => {
+                        let btn = document.createElement('div');
+                        btn.className = 'btn-skill';
+                        btn.onclick = () => useSkill(key);
+                        btn.innerHTML = `<span class="skill-key">${key}</span><span class="skill-name" id="${id}_name_${key}">${skills[key] ? skills[key].name : '-'}</span><div class="skill-overlay" id="${id}_overlay_${key}"></div>`;
+                        el.appendChild(btn);
+                    });
+                } else {
+                     keys.forEach(key => {
+                        const nameEl = document.getElementById(`${id}_name_${key}`);
+                        if(nameEl) nameEl.innerText = skills[key] ? skills[key].name : '-';
+                    });
                 }
-                return;
-            }
-
-            isShowingReward = true;
-            let reward = rewardQueue.shift();
-            document.getElementById('rewardName').innerText = reward.name;
-            document.getElementById('rewardIcon').innerText = reward.icon;
-            document.getElementById('rewardOverlay').style.display = 'flex';
+            });
         }
 
-        function nextReward() {
-            showNextReward();
+        function updateSkillCoolDowns() {
+            const containers = ['dungeonSkills', 'battleSkills', 'raidSkills'];
+            const now = Date.now();
+            const keys = ['Z', 'X', 'C', 'V', 'B'];
+
+            containers.forEach(cId => {
+                if(!document.getElementById(cId).parentElement.classList.contains('active')) return;
+                keys.forEach(key => {
+                    const overlay = document.getElementById(`${cId}_overlay_${key}`);
+                    if (overlay) {
+                        let remaining = skillCD[key] - now;
+                        if (remaining < 0) remaining = 0;
+                        let pct = (remaining / MAX_CD[key]) * 100;
+                        overlay.style.height = pct + "%";
+                    }
+                });
+            });
         }
 
-        // === 데미지 계산 ===
+        // === ⚔️ 데미지 계산 ===
         function calculateDamage() {
-            let weapon = getCurrentDisplayWeapon();
+            let weapon = getCurrentDisplayWeapon(); 
             let tierBonus = 0;
-            
-            // Lv.500 스쿠나 손가락 (고죠급 사기 무기)
-            if(weapon.name === "스쿠나의 손가락") tierBonus = 100000000000; // 1000억
-            else if(weapon.name === "반전 술식") tierBonus = 80000000000;
-            else if(weapon.name === "차원 절단기") tierBonus = 70000000000;
-            else if(weapon.name === "블랙홀 생성기") tierBonus = 60000000000;
-            else if(weapon.name === "검은 안대") tierBonus = 50000000; 
-            else if(weapon.name === "1x1x1x 왕관") tierBonus = 45000000;
-            else if(weapon.name === "1x 검" || weapon.name === "1x 활" || weapon.name === "1x 컴퓨터") tierBonus = 40000000;
-            else if(weapon.name === "조커 카드") tierBonus = 30000000; 
-            else if(weapon.name === "불사조 깃털") tierBonus = 25000000;
-            
-            let base = (gameData.weaponLevel * 200) + tierBonus + 100;
-            
-            // 🔥 손가락 섭취 배수 적용 (2의 n승)
-            if(gameData.eatenFingers > 0) {
-                base = base * Math.pow(2, gameData.eatenFingers);
-            }
+            const name = weapon.name;
 
-            let finalDmg = base;
+            if(name === "드래곤 단검") tierBonus = 500000000000; // 최강 (고죠/스쿠나/절대신보다 높음)
+            else if(name === "드래곤 클론") tierBonus = 100000000000; // 단검보다 약함 (1/5 수준)
+            else if(name === "드래곤 채찍") tierBonus = 2000000000000; // 단검보다 강함
+            else if(name === "드래곤 부채") tierBonus = 3000000000;
+
+            else if(name === "캔디 낫") tierBonus = 300000000000; // 드래곤 클론보다 강함
+            else if(name === "캔디 카타나") tierBonus = 80000000000;
+            else if(name === "캔디 지팡이") tierBonus = 20000000000;
+
+            else if(name === "지옥의 활") tierBonus = 50000;
+            else if(name === "사신의 낫") tierBonus = 200000;
+            else if(name === "듀얼 단검") tierBonus = 1000000;
+            else if(name.includes("히드라")) tierBonus = 5000000;
+            else if(name === "불사조 깃털") tierBonus = 25000000;
+            else if(name === "조커 카드") tierBonus = 80000000;
+            else if(name.includes("1x")) tierBonus = 200000000;
+            else if(name === "듀얼 낫") tierBonus = 500000000;
+            else if(name === "검은 안대") tierBonus = 1000000000;
+            else if(name === "스쿠나의 손가락") tierBonus = 5000000000;
+            else if(name === "글리치 전기톱") tierBonus = 8000000000; 
+            else if(name === "글리치 기타") tierBonus = 9999999999;
+            else if(name === "악마의 뿔") tierBonus = 60000000; 
+            else if(name === "천사의 링") tierBonus = 300000000; 
+            else if(name === "척추 손") tierBonus = 2000000000; 
+            else if(name === "신의 구슬") tierBonus = 99999999999;
+
+            let base = (gameData.weaponLevel * 200) + tierBonus + 100;
+            if(gameData.eatenFingers > 0) base = base * Math.pow(2, gameData.eatenFingers);
+            base = base * buffDamageMult;
             
+            let finalDmg = base;
             const now = Date.now();
             let skills = getWeaponSkillInfo();
             let activeSkill = null;
-            if (now - (skillCD.V - MAX_CD.V) < 1000) activeSkill = skills.V;
-            else if (now - (skillCD.C - MAX_CD.C) < 1000) activeSkill = skills.C;
-            else if (now - (skillCD.X - MAX_CD.X) < 1000) activeSkill = skills.X;
-            else if (now - (skillCD.Z - MAX_CD.Z) < 1000) activeSkill = skills.Z;
-
-            if (activeSkill) {
-                if (currentRaidType === 'gojo' && activeSkill.fixed >= 99999999) finalDmg = base * 10000; 
-                else if (activeSkill.fixed) finalDmg = activeSkill.fixed;
-                else finalDmg = base * activeSkill.mult;
+            
+            if (now - skillActiveTime.B < 1000 && skills.B) activeSkill = skills.B;
+            else if (now - skillActiveTime.V < 1000) activeSkill = skills.V;
+            else if (now - skillActiveTime.C < 1000) activeSkill = skills.C;
+            else if (now - skillActiveTime.X < 1000) activeSkill = skills.X;
+            else if (now - skillActiveTime.Z < 1000) activeSkill = skills.Z;
+            
+            if (activeSkill) { 
+                if (activeSkill.fixed) finalDmg = activeSkill.fixed; 
+                else finalDmg = base * activeSkill.mult; 
             }
-
+            
             if (isNaN(finalDmg) || finalDmg < 1) finalDmg = 1; 
             return Math.floor(finalDmg);
         }
 
-        // === 레이드 로직 ===
+        function setMusic(theme) {
+            const bar = document.getElementById('musicBar'); const body = document.body;
+            AudioEngine.playBGM(theme);
+            if(theme === 'town') { bar.innerText = "🎵 Music: Peaceful Village Theme"; body.style.backgroundColor = "#050505"; } 
+            else if (theme === 'field') { bar.innerText = "🎵 Music: Wild Forest Ambience"; body.style.backgroundColor = "#1a1a1a"; } 
+            else if (theme === 'dungeon') { bar.innerText = "🎵 Music: Ominous Cave (Deep)"; } 
+            else if (theme === 'hell') { bar.innerText = "🎵 Music: Hellfire Torment"; body.style.backgroundColor = "#2d5a27"; } 
+            else if (theme === 'heaven') { bar.innerText = "🎵 Music: Heavenly Judgment"; body.style.backgroundColor = "#ecf0f1"; body.style.color = "#2c3e50"; }
+            else if (theme === 'skeleton') { bar.innerText = "🎵 Music: Skeleton March"; body.style.backgroundColor = "#333333"; body.style.color = "#a0a0a0"; }
+            else if (theme === 'dragon') { bar.innerText = "🎵 Music: Dragon Roar"; body.style.backgroundColor = "#8B0000"; body.style.color = "#FFD700"; }
+            else if (theme === 'raid') { bar.innerText = "🎵 Music: Intense Boss Battle"; body.style.backgroundColor = "#2c0000"; }
+            else if (theme === 'god') { bar.innerText = "🎵 Music: Divine Presence"; body.style.backgroundColor = "#fff"; body.style.color = "#000"; }
+            else if (theme === 'christmas') { bar.innerText = "🎵 Music: Jingle Bells (8-bit)"; body.style.backgroundColor = "#c0392b"; body.style.color = "#fff"; }
+        }
+
+        function toggleAutoAttack(isDungeon) {
+            if (autoAttackInterval) { clearInterval(autoAttackInterval); autoAttackInterval = null; document.getElementById('btnAutoField').innerText = "🤖 자동"; document.getElementById('btnAutoDungeon').innerText = "🤖 자동"; } 
+            else { document.getElementById('btnAutoField').innerText = "⏹ 중단"; document.getElementById('btnAutoDungeon').innerText = "⏹ 중단"; autoAttackInterval = setInterval(() => { if (isDungeon) { if (document.getElementById('dungeonScreen').classList.contains('active')) attackDungeonMonster(); else toggleAutoAttack(true); } else { if (document.getElementById('fieldScreen').classList.contains('active')) { if(document.getElementById('attackBtn').style.display !== 'none') attackMonster(); else if(document.getElementById('nextMonsterBtn').style.display !== 'none') spawnMonster(); } else toggleAutoAttack(false); } }, 100); }
+        }
+
+        function goToDungeonSelect() { changeScreen('dungeonSelectScreen'); }
+        function startDungeon(mode) {
+            dungeonMode = mode;
+            changeScreen('dungeonScreen');
+            spawnDungeonMob(); updateDungeonUI(); updateSkillButtons(); 
+            let armorHp = 1000;
+            if(gameData.equippedArmorName === "가시 갑옷") armorHp = 50000000000;
+            else if(gameData.equippedArmorName === "드래곤 헤드") armorHp = 50000000000000; // HP 50조
+            else { let armor = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0]; armorHp = armor.hp; }
+            playerMaxHp = armorHp; playerCurrentHp = playerMaxHp; updateDungeonHP(); 
+        }
+
+        function leaveDungeon() { if(autoAttackInterval) toggleAutoAttack(true); saveGame(); changeScreen('townScreen'); }
+        
+        function spawnDungeonMob() {
+            const body = document.body; const bar = document.getElementById('musicBar'); const title = document.getElementById('dungeonTitle');
+            const dungeonMobName = document.getElementById('dungeonMobName');
+            const dungeonMobIcon = document.getElementById('dungeonMobIcon');
+
+            let hpBase = 5000 * Math.pow(1.15, dungeonWave);
+            let isBoss = dungeonWave % 10 === 0;
+
+            // 크리스마스 모드 처리
+            if (dungeonMode === 'christmas') {
+                body.style.backgroundColor = "#c0392b"; body.style.color = "#fff"; bar.innerText = "🎵 Music: Jingle Bells"; title.innerText = "🎄 크리스마스 던전"; AudioEngine.playBGM('christmas');
+                
+                if(isBoss) {
+                     dungeonMobHp = hpBase * 10;
+                     dungeonMobName.innerText = `[BOSS] 사악한 산타 (Wave ${dungeonWave})`;
+                     dungeonMobIcon.innerText = "🎅";
+                } else {
+                    dungeonMobHp = hpBase;
+                    let mobs = [
+                        {name: "눈사람", icon: "⛄"},
+                        {name: "루돌프", icon: "🦌"},
+                        {name: "선물 상자", icon: "🎁"},
+                        {name: "크리스마스 트리", icon: "🎄"}
+                    ];
+                    let m = mobs[Math.floor(Math.random() * mobs.length)];
+                    dungeonMobName.innerText = `${m.name} (Wave ${dungeonWave})`;
+                    dungeonMobIcon.innerText = m.icon;
+                }
+            } 
+            else {
+                // 일반 던전 처리
+                if (dungeonWave >= 500) { 
+                    body.style.backgroundColor = "#8B0000"; body.style.color = "#FFD700"; bar.innerText = "🎵 Music: Dragon Roar"; title.innerText = "🐉 드래곤 둥지"; AudioEngine.playBGM('dragon'); 
+                }
+                else if (dungeonWave >= 400) { 
+                    body.style.backgroundColor = "#111"; body.style.color = "#ccc"; bar.innerText = "🎵 Music: Skeleton March"; title.innerText = "☠️ 스켈레톤 던전"; AudioEngine.playBGM('skeleton'); 
+                }
+                else if (dungeonWave >= 300) { 
+                    body.style.backgroundColor = "#ecf0f1"; body.style.color = "#2c3e50"; bar.innerText = "🎵 Music: Heavenly Judgment"; title.innerText = "☁️ 천국 던전"; AudioEngine.playBGM('heaven'); 
+                } 
+                else if (dungeonWave >= 100) { 
+                    body.style.backgroundColor = "#2d5a27"; body.style.color = "white"; bar.innerText = "🎵 Music: Hellfire Torment"; title.innerText = "🔥 지옥 던전 (농장)"; AudioEngine.playBGM('hell'); 
+                } 
+                else { 
+                    body.style.backgroundColor = "#1e272e"; body.style.color = "white"; bar.innerText = "🎵 Music: Ominous Cave"; title.innerText = "🕳️ 무한의 동굴"; AudioEngine.playBGM('dungeon'); 
+                }
+
+                if(isBoss) { 
+                    dungeonMobHp = hpBase * 10; 
+                    dungeonMobName.innerText = `[BOSS] 문지기 (Wave ${dungeonWave})`; 
+                    dungeonMobIcon.innerText = "👹"; 
+                } 
+                else { 
+                    dungeonMobHp = hpBase; 
+                    let name = "유령", icon = "👻";
+                    if (dungeonWave >= 500) { name = "화룡"; icon = "🐲"; }
+                    else if(dungeonWave >= 400) { name = "스켈레톤 병사"; icon = "💀"; }
+                    else if(dungeonWave >= 300) { name = "타락 천사"; icon = "🪽"; }
+                    else if(dungeonWave >= 100) { name = "지옥불 정령"; icon = "🔥"; }
+                    dungeonMobName.innerText = `${name} (Wave ${dungeonWave})`; 
+                    dungeonMobIcon.innerText = icon; 
+                }
+            }
+            dungeonMobMaxHp = dungeonMobHp; updateDungeonUI();
+        }
+
+        function attackDungeonMonster() {
+            if(playerCurrentHp <= 0) return;
+            let dmg = calculateDamage(); dungeonMobHp -= dmg; AudioEngine.sfx.attack();
+            let mobDmg = dungeonWave * 50; if (dungeonWave >= 100) mobDmg *= 2; if (dungeonWave >= 300) mobDmg *= 3; if (dungeonWave >= 400) mobDmg *= 5; if (dungeonWave >= 500) mobDmg *= 10;
+            mobDmg = mobDmg * buffDefenseMult;
+            let weapon = getCurrentDisplayWeapon(); if (weapon.name.includes("히드라") || weapon.name.includes("스쿠나") || weapon.name.includes("듀얼 낫") || weapon.name.includes("신의 구슬")) { let lifesteal = Math.floor(dmg * 0.05); playerCurrentHp += lifesteal; if(playerCurrentHp > playerMaxHp) playerCurrentHp = playerMaxHp; }
+            
+            if(gameData.equippedArmorName === "가시 갑옷") { let reflectDmg = mobDmg * 10; dungeonMobHp -= reflectDmg; }
+            if(gameData.equippedArmorName === "드래곤 헤드") { let reflectDmg = mobDmg * 50; dungeonMobHp -= reflectDmg; } // 드래곤 헤드 반사
+
+            playerCurrentHp -= mobDmg; updateDungeonHP();
+            if (playerCurrentHp <= 0) { if(autoAttackInterval) toggleAutoAttack(true); alert(`💀 사망했습니다! Wave ${dungeonWave}에서 패배.`); leaveDungeon(); return; }
+            if(dungeonMobHp <= 0) { 
+                dungeonMobHp = 0; let reward = 10000 * Math.pow(1.1, dungeonWave); gameData.coins += reward; 
+                let potionName = dropRandomPotion();
+                
+                // === 기존 던전 드롭 ===
+                if (dungeonMode === 'normal') {
+                    if (dungeonWave >= 100 && dungeonWave < 300) { if (Math.random() < 0.05 && !gameData.hasDevilHorn) { gameData.hasDevilHorn = true; queueReward("악마의 뿔", "😈"); } }
+                    else if (dungeonWave >= 300 && dungeonWave < 400) { if (Math.random() < 0.05 && !gameData.hasAngelRing) { gameData.hasAngelRing = true; queueReward("천사의 링", "😇"); } }
+                    else if (dungeonWave >= 400 && dungeonWave < 500) { if (Math.random() < 0.05 && !gameData.hasSpineHand) { gameData.hasSpineHand = true; queueReward("척추 손", "🖐️"); } }
+                    else if (dungeonWave >= 500) { if (Math.random() < 0.02 && !gameData.hasDragonFan) { gameData.hasDragonFan = true; queueReward("드래곤 부채", "🪭"); } }
+                    
+                    if (Math.random() < 0.05 && !gameData.hasGlitchGuitar) { gameData.hasGlitchGuitar = true; queueReward("글리치 기타", "🎸"); AudioEngine.sfx.glitch(); } 
+                    if (Math.random() < 0.05 && !gameData.hasGlitchChainsaw) { gameData.hasGlitchChainsaw = true; queueReward("글리치 전기톱", "🪚"); AudioEngine.sfx.glitch(); }
+                }
+
+                // === 크리스마스 던전 드롭 ===
+                if (dungeonMode === 'christmas') {
+                    // 2% 캔디 낫
+                    if (Math.random() < 0.02 && !gameData.hasCandyScythe) { 
+                        gameData.hasCandyScythe = true; 
+                        queueReward("🍬 캔디 낫 (2%)", "🍬"); 
+                    }
+                    // 3% 캔디 카타나
+                    if (Math.random() < 0.03 && !gameData.hasCandyKatana) { 
+                        gameData.hasCandyKatana = true; 
+                        queueReward("🎋 캔디 카타나 (3%)", "🎋"); 
+                    }
+                    // 4% 캔디 지팡이
+                    if (Math.random() < 0.04 && !gameData.hasCandyStaff) { 
+                        gameData.hasCandyStaff = true; 
+                        queueReward("🍭 캔디 지팡이 (4%)", "🍭"); 
+                    }
+                }
+                
+                if (Math.random() < 0.3) { gameData.raidTickets++; log('dungeon', "🎟️ 티켓 획득!"); }
+
+                saveGame(); 
+                log('dungeon', `Wave ${dungeonWave} Clear! +${Math.floor(reward).toLocaleString()} G / ${potionName}`); dungeonWave++; spawnDungeonMob(); AudioEngine.sfx.coin(); 
+            } updateDungeonUI();
+        }
+        function updateDungeonUI() { document.getElementById('dungeonWave').innerText = dungeonWave; document.getElementById('dungeonMobHpBar').style.width = (dungeonMobHp / dungeonMobMaxHp)*100 + "%"; document.getElementById('dungeonMobHpText').innerText = `${Math.floor(dungeonMobHp).toLocaleString()} / ${Math.floor(dungeonMobMaxHp).toLocaleString()}`; }
+        function updateDungeonHP() { let pct = (playerCurrentHp / playerMaxHp) * 100; if (pct < 0) pct = 0; document.getElementById('playerHpBarDungeon').style.width = pct + "%"; document.getElementById('playerHpTextDungeon').innerText = `${Math.floor(playerCurrentHp).toLocaleString()} / ${Math.floor(playerMaxHp).toLocaleString()}`; }
+
         function goToRaidSelect() { changeScreen('raidSelectScreen'); }
         function startRaid(type) {
-            currentRaidType = type;
-            let armor = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0];
-            playerMaxHp = armor.hp; playerCurrentHp = playerMaxHp; 
+            if (gameData.raidTickets < 1) {
+                alert("🎟️ 레이드 티켓이 부족합니다! (몬스터 처치 시 획득 가능)");
+                return;
+            }
+            gameData.raidTickets--; 
+            updateUI(); 
 
+            currentRaidType = type; 
+            let armorHp = 1000;
+            if(gameData.equippedArmorName === "가시 갑옷") armorHp = 50000000000;
+            else if(gameData.equippedArmorName === "드래곤 헤드") armorHp = 50000000000000;
+            else { let armor = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0]; armorHp = armor.hp; }
+            playerMaxHp = armorHp; playerCurrentHp = playerMaxHp; 
             document.getElementById('btnPrisonRealm').style.display = 'none';
-
+            
             if (type === 'hell') { raidMaxHp = 10000000; document.getElementById('raidTitle').innerText = "🔥 지옥의 파수꾼"; document.getElementById('raidBossIcon').innerText = "👿"; } 
             else if (type === 'reaper') { raidMaxHp = 50000000; document.getElementById('raidTitle').innerText = "💀 사신"; document.getElementById('raidBossIcon').innerText = "💀"; }
             else if (type === 'dagger') { raidMaxHp = 200000000; document.getElementById('raidTitle').innerText = "⚔️ 암살자 마스터"; document.getElementById('raidBossIcon').innerText = "⚔️"; }
@@ -498,240 +1114,221 @@
             else if (type === 'phoenix') { raidMaxHp = 5000000000; document.getElementById('raidTitle').innerText = "🦅 불사조"; document.getElementById('raidBossIcon').innerText = "🦅"; }
             else if (type === 'joker') { raidMaxHp = 50000000000; document.getElementById('raidTitle').innerText = "🤡 조커"; document.getElementById('raidBossIcon').innerText = "🤡"; }
             else if (type === '1x1x1x1') { raidMaxHp = 100000000000; document.getElementById('raidTitle').innerText = "🔳 1x1x1x1 차원"; document.getElementById('raidBossIcon').innerText = "🔳"; } 
-            else if (type === 'gojo') { 
-                raidMaxHp = 500000000000; 
-                document.getElementById('raidTitle').innerText = "🤞 고죠 사토루"; 
-                document.getElementById('raidBossIcon').innerText = "🤞";
-                document.getElementById('btnPrisonRealm').style.display = 'inline-block'; 
-                document.getElementById('btnPrisonRealm').innerText = `📦 옥문강 봉인 (${gameData.prisonRealm}개)`;
-            } 
+            else if (type === 'dual_scythe') { raidMaxHp = 250000000000; document.getElementById('raidTitle').innerText = "⚔️💀 듀얼 낫 마스터"; document.getElementById('raidBossIcon').innerText = "💀"; }
+            else if (type === 'gojo') { raidMaxHp = 500000000000; document.getElementById('raidTitle').innerText = "🤞 고죠 사토루"; document.getElementById('raidBossIcon').innerText = "🤞"; document.getElementById('btnPrisonRealm').style.display = 'inline-block'; document.getElementById('btnPrisonRealm').innerText = `📦 옥문강 봉인 (${gameData.prisonRealm}개)`; }
+            else if (type === 'god') { raidMaxHp = 5000000000000; document.getElementById('raidTitle').innerText = "🌟 절대신"; document.getElementById('raidBossIcon').innerText = "🌟"; AudioEngine.playBGM('god'); }
+            else if (type === 'dragon_god') { raidMaxHp = 100000000000000; document.getElementById('raidTitle').innerText = "🐲 진: 드래곤 (신보다 강함)"; document.getElementById('raidBossIcon').innerText = "🐲"; AudioEngine.playBGM('dragon'); } // HP 100조
+
+            raidHp = raidMaxHp; updateSkillButtons(); changeScreen('raidScreen'); updateRaidUI(); log('raid', `레이드 시작! (티켓 소모)`);
+        }
+        function usePrisonRealm() { if (currentRaidType !== 'gojo') return; if (gameData.prisonRealm > 0) { gameData.prisonRealm--; raidHp = 0; log('raid', "📦 옥문강 개문! 고죠 사토루 봉인!"); document.getElementById('btnPrisonRealm').innerText = `📦 옥문강 봉인 (${gameData.prisonRealm}개)`; updateRaidUI(); raidSuccess(); } else { alert("옥문강이 부족합니다! (코드: yyyuy)"); } }
+        function attackRaidBoss() { 
+            if (playerCurrentHp <= 0) {
+                playerCurrentHp = 0; updateRaidUI();
+                alert("💀 패배했습니다! 마을로 돌아갑니다."); changeScreen('townScreen'); return;
+            }
+            if (raidHp <= 0) return; 
+            let dmg = calculateDamage(); if (dmg === Infinity) raidHp = 0; else raidHp -= dmg; if(raidHp < 0) raidHp = 0; AudioEngine.sfx.attack(); let weapon = getCurrentDisplayWeapon(); if (weapon.name.includes("히드라") || weapon.name.includes("스쿠나") || weapon.name.includes("듀얼 낫") || weapon.name.includes("신의 구슬")) { let lifesteal = Math.floor(dmg * 0.05); if(lifesteal > 0) { playerCurrentHp += lifesteal; if(playerCurrentHp > playerMaxHp) playerCurrentHp = playerMaxHp; } } let bossIcon = document.getElementById('raidBossIcon'); bossIcon.classList.remove('shake'); void bossIcon.offsetWidth; bossIcon.classList.add('shake'); let bossDmg = 1000; 
+            if(currentRaidType === 'reaper') bossDmg = 5000; if(currentRaidType === 'dagger') bossDmg = 20000; if(currentRaidType === 'hydra') bossDmg = 100000; if(currentRaidType === 'phoenix') bossDmg = 300000; if(currentRaidType === 'joker') bossDmg = 500000; if(currentRaidType === '1x1x1x1') bossDmg = 1000000000; if(currentRaidType === 'dual_scythe') bossDmg = 5000000000; if(currentRaidType === 'gojo') bossDmg = 10000000000; 
+            if(currentRaidType === 'god') bossDmg = 99999999999; 
+            if(currentRaidType === 'dragon_god') bossDmg = 500000000000; // 엄청 쎔
             
-            raidHp = raidMaxHp; updateSkillButtons(); changeScreen('raidScreen'); updateRaidUI(); log('raid', `레이드 시작!`);
+            bossDmg = bossDmg * buffDefenseMult;
+            playerCurrentHp -= bossDmg; if(playerCurrentHp < 0) playerCurrentHp = 0; updateRaidUI(); let logMsg = `공격! ${dmg === Infinity ? "MAX" : dmg.toLocaleString()}`; log('raid', logMsg); 
+            
+            if (playerCurrentHp <= 0) { alert("💀 패배했습니다! 마을로 돌아갑니다."); changeScreen('townScreen'); } 
+            else if (raidHp <= 0) { raidSuccess(); } 
         }
-
-        function usePrisonRealm() {
-            if (currentRaidType !== 'gojo') return;
-            if (gameData.prisonRealm > 0) {
-                gameData.prisonRealm--;
-                raidHp = 0;
-                log('raid', "📦 옥문강 개문! 고죠 사토루 봉인!");
-                document.getElementById('btnPrisonRealm').innerText = `📦 옥문강 봉인 (${gameData.prisonRealm}개)`;
-                updateRaidUI();
-                raidSuccess();
-            } else {
-                alert("옥문강이 부족합니다! (코드: yyyuy)");
-            }
-        }
-
-        function attackRaidBoss() {
-            if (playerCurrentHp <= 0) { playerCurrentHp = playerMaxHp; updateRaidUI(); }
-            if (raidHp <= 0) return;
-
-            let dmg = calculateDamage(); 
-            if (dmg === Infinity) raidHp = 0; else raidHp -= dmg; 
-            if(raidHp < 0) raidHp = 0;
-
-            let weapon = getCurrentDisplayWeapon();
-            if (weapon.name.includes("히드라") || weapon.name.includes("스쿠나")) { 
-                let lifesteal = Math.floor(dmg * 0.05); if(lifesteal > 0) { playerCurrentHp += lifesteal; if(playerCurrentHp > playerMaxHp) playerCurrentHp = playerMaxHp; }
-            }
-
-            let bossIcon = document.getElementById('raidBossIcon'); bossIcon.classList.remove('shake'); void bossIcon.offsetWidth; bossIcon.classList.add('shake');
-            let bossDmg = 1000;
-            if(currentRaidType === 'reaper') bossDmg = 5000; if(currentRaidType === 'dagger') bossDmg = 20000;
-            if(currentRaidType === 'hydra') bossDmg = 100000; 
-            if(currentRaidType === 'phoenix') bossDmg = 300000; 
-            if(currentRaidType === 'joker') bossDmg = 500000;
-            if(currentRaidType === '1x1x1x1') bossDmg = 1000000000; 
-            if(currentRaidType === 'gojo') bossDmg = 100000000;
-
-            playerCurrentHp -= bossDmg; if(playerCurrentHp < 0) playerCurrentHp = 0;
-            updateRaidUI(); 
-            let logMsg = `공격! ${dmg === Infinity ? "MAX" : dmg.toLocaleString()}`;
-            log('raid', logMsg);
-
-            if (playerCurrentHp <= 0) { log('raid', "💀 사망!"); } 
-            else if (raidHp <= 0) { raidSuccess(); }
-        }
-
+        
         function raidSuccess() {
-            let rewardCoin = 0;
-            if (currentRaidType === 'hell') rewardCoin = 5000000;
-            else if (currentRaidType === 'reaper') rewardCoin = 10000000;
-            else if (currentRaidType === 'dagger') rewardCoin = 30000000;
-            else if (currentRaidType === 'hydra') rewardCoin = 50000000;
-            else if (currentRaidType === 'phoenix') rewardCoin = 80000000; 
-            else if (currentRaidType === 'joker') rewardCoin = 100000000;
-            else if (currentRaidType === '1x1x1x1') rewardCoin = 300000000; 
-            else if (currentRaidType === 'gojo') rewardCoin = 500000000;
-
-            gameData.coins += rewardCoin;
-            queueReward(`${(rewardCoin / 10000).toLocaleString()}만 G`, "💰");
+            let rewardCoin = 0; if (currentRaidType === 'hell') rewardCoin = 5000000; else if (currentRaidType === 'reaper') rewardCoin = 10000000; else if (currentRaidType === 'dagger') rewardCoin = 30000000; else if (currentRaidType === 'hydra') rewardCoin = 50000000; else if (currentRaidType === 'phoenix') rewardCoin = 80000000; else if (currentRaidType === 'joker') rewardCoin = 100000000; else if (currentRaidType === '1x1x1x1') rewardCoin = 300000000; else if (currentRaidType === 'dual_scythe') rewardCoin = 400000000; else if (currentRaidType === 'gojo') rewardCoin = 500000000; else if (currentRaidType === 'god') rewardCoin = 999999999999;
+            else if (currentRaidType === 'dragon_god') rewardCoin = 9999999999999;
             
-            if (currentRaidType === 'hell' && Math.random()<0.7 && !gameData.hasHellBow) { 
-                gameData.hasHellBow=true; queueReward("지옥의 활", "🔥"); 
-            } 
-            else if (currentRaidType === 'gojo') {
-                if(Math.random()<0.6 && !gameData.hasGojoBlindfold) { 
-                    gameData.hasGojoBlindfold=true; queueReward("검은 안대", "🕶️"); 
-                }
-                if(Math.random()<0.5) {
-                    gameData.sukunaFingers++;
-                    queueReward("스쿠나의 손가락", "🧟");
-                    if(!gameData.hasSukunaFinger) { gameData.hasSukunaFinger=true; queueReward("스쿠나의 손가락(무기)", "🧟"); }
+            gameData.coins += rewardCoin; queueReward(`${(rewardCoin / 10000).toLocaleString()}만 G`, "💰"); 
+            dropRandomPotion();
+            AudioEngine.sfx.coin();
+
+            if (currentRaidType === 'hell' && !gameData.hasHellBow) { gameData.hasHellBow=true; queueReward("지옥의 활", "🔥"); }
+            else if (currentRaidType === 'reaper' && !gameData.hasScythe) { gameData.hasScythe=true; queueReward("사신의 낫", "💀"); }
+            else if (currentRaidType === 'dagger' && !gameData.hasDualDagger) { gameData.hasDualDagger=true; queueReward("듀얼 단검", "⚔️"); }
+            else if (currentRaidType === 'hydra') { if(!gameData.hasHydraSword) { gameData.hasHydraSword=true; queueReward("히드라 검", "🗡️"); } else if(!gameData.hasHydraAnchor) { gameData.hasHydraAnchor=true; queueReward("히드라 닻", "⚓"); } else if(!gameData.hasHydraAxe) { gameData.hasHydraAxe=true; queueReward("히드라 도끼", "🪓"); } else if(!gameData.hasHydraStaff) { gameData.hasHydraStaff=true; queueReward("히드라 지팡이", "🪄"); } }
+            else if (currentRaidType === 'phoenix' && !gameData.hasPhoenixWing) { gameData.hasPhoenixWing=true; queueReward("불사조 깃털", "🦅"); }
+            else if (currentRaidType === 'joker' && !gameData.hasJokerCard) { gameData.hasJokerCard=true; queueReward("조커 카드", "🃏"); }
+            else if (currentRaidType === '1x1x1x1') { if(!gameData.has1xSword) { gameData.has1xSword=true; queueReward("1x 검", "⚔️"); } else if(!gameData.has1xBow) { gameData.has1xBow=true; queueReward("1x 활", "🏹"); } else if(!gameData.has1xComputer) { gameData.has1xComputer=true; queueReward("1x 컴퓨터", "💻"); } else if(!gameData.has1xCrown) { gameData.has1xCrown=true; queueReward("1x1x1x 왕관", "👑"); } }
+            else if (currentRaidType === 'dual_scythe' && !gameData.hasDualScythe) { gameData.hasDualScythe=true; queueReward("듀얼 낫", "⚔️💀"); }
+            else if (currentRaidType === 'gojo') { if(!gameData.hasGojoBlindfold) { gameData.hasGojoBlindfold=true; queueReward("검은 안대", "🕶️"); } gameData.sukunaFingers++; queueReward("스쿠나의 손가락", "🧟"); if(!gameData.hasSukunaFinger) { gameData.hasSukunaFinger=true; queueReward("스쿠나의 손가락(무기)", "🧟"); } }
+            else if (currentRaidType === 'god') { if(!gameData.hasGodBead) { gameData.hasGodBead=true; queueReward("신의 구슬", "🔮"); } }
+            
+            else if (currentRaidType === 'dragon_god') { 
+                let roll = Math.random();
+                if (roll < 0.5) { // 50% 드래곤 날개
+                    if(!gameData.hasDragonWing) { gameData.hasDragonWing=true; queueReward("드래곤 날개 (버프)", "🦋"); }
+                    else { queueReward("이미 날개 보유중", "⚠️"); }
+                } else { // 50% 드래곤 채찍
+                    if(!gameData.hasDragonWhip) { gameData.hasDragonWhip=true; queueReward("드래곤 채찍", "🥓"); }
+                    else { queueReward("이미 채찍 보유중", "⚠️"); }
                 }
             }
-            
-            renderWeaponInventory();
-            saveGame();
+
+            renderWeaponInventory(); saveGame();
         }
 
         function gachaWeapon() {
-            const COST = 50000;
-            if (gameData.coins < COST) { log('town', "돈 부족"); return; }
-            if (gameData.weaponLevel >= 490) { log('town', "준 종결급!"); return; } 
-            gameData.coins -= COST;
-            let roll = Math.random() * 100;
-            let resultLv = 0;
-            
-            if (roll < 5) resultLv = 80 + Math.floor(Math.random()*20);
-            else if (roll < 30) resultLv = 120 + Math.floor(Math.random()*40);
-            else if (roll < 70) resultLv = 160 + Math.floor(Math.random()*40);
-            else if (roll < 95) resultLv = 200 + Math.floor(Math.random()*100); 
-            else if (roll < 99) resultLv = 300 + Math.floor(Math.random()*100); 
-            else resultLv = 400 + Math.floor(Math.random()*90); 
-
-            if (resultLv > 499) resultLv = 499; 
-            
-            if (resultLv > gameData.weaponLevel) { 
-                gameData.weaponLevel = resultLv; 
-                queueReward(`Lv.${resultLv} 무기`, "✨");
-                renderWeaponInventory(); 
-            } else { 
-                log('town', `..Lv.${resultLv}`); 
-            }
-            updateUI();
+            const COST = 50000; if (gameData.coins < COST) { log('town', "돈 부족"); return; } if (gameData.weaponLevel >= 2000) { log('town', "준 종결급!"); return; } 
+            gameData.coins -= COST; let roll = Math.random() * 100; let resultLv = 0;
+            if (roll < 5) resultLv = 80 + Math.floor(Math.random()*20); else if (roll < 30) resultLv = 120 + Math.floor(Math.random()*40); else if (roll < 70) resultLv = 160 + Math.floor(Math.random()*40); else if (roll < 95) resultLv = 200 + Math.floor(Math.random()*100); else if (roll < 99) resultLv = 300 + Math.floor(Math.random()*200); else resultLv = 500 + Math.floor(Math.random()*490); 
+            if (resultLv > 2000) resultLv = 2000; 
+            if (resultLv > gameData.weaponLevel) { gameData.weaponLevel = resultLv; queueReward(`Lv.${resultLv} 무기`, "✨"); renderWeaponInventory(); AudioEngine.sfx.levelUp(); } else { log('town', `..Lv.${resultLv}`); } updateUI();
         }
-
-        // 🔥 강화 확률 80% 고정
         function enhanceWeapon() {
             if(gameData.coins < 100) return log('town', "돈 부족!"); gameData.coins -= 100;
-            
-            // 모든 구간 80% 고정
-            let rate = 80;
-
-            if (gameData.weaponLevel >= 499) { log('town', "최고 레벨 도달!"); return; }
-
-            if(Math.random()*100 < rate) { gameData.weaponLevel++; log('town', "강화 성공!"); renderWeaponInventory(); } 
-            else { if(gameData.weaponLevel>0) gameData.weaponLevel--; log('town', "실패! (-1)"); } 
-            updateUI();
+            let rate = 80; if (gameData.weaponLevel >= 2000) { log('town', "최고 레벨 도달!"); return; }
+            if(Math.random()*100 < rate) { gameData.weaponLevel++; log('town', "강화 성공!"); renderWeaponInventory(); AudioEngine.sfx.gacha(); } else { if(gameData.weaponLevel>0) gameData.weaponLevel--; log('town', "실패! (-1)"); } updateUI();
         }
 
-        // === 🔥 스킬 시스템 ===
-        function getWeaponSkillInfo() {
-            let weapon = getCurrentDisplayWeapon();
-            let name = weapon.name;
-            
-            if (name === "스쿠나의 손가락") return { Z:{name:"🔪 해(Cleave)", mult:200000}, X:{name:"🕸️ 팔(Dismantle)", mult:500000}, C:{name:"🔥 푸가(Fire)", mult:9999999}, V:{name:"🏯 복마어주자", mult:0, fixed:Infinity} };
-
-            if (name === "검은 안대") return { Z:{name:"🔴 아카", mult:5000}, X:{name:"🔵 아오", mult:5000}, C:{name:"🟣 무라사키", mult:99999}, V:{name:"🤞 무량공처", mult:0, fixed:Infinity} };
-            if (name === "잠자리채") return { Z: { name: "🌌 블랙홀", mult: 0, fixed: 99999999 }, X: { name: "💫 붕괴", mult: 500 }, C: { name: "❌ 삭제", mult: 1000 }, V: { name: "🕷️ 포획", mult: 2000 } };
-            
-            if (name === "1x1x1x 왕관") return { Z:{name:"👑 명령", mult:50000}, X:{name:"🏰 소환", mult:80000}, C:{name:"🌍 지배", mult:500000}, V:{name:"🛑 정지", mult:0, fixed:Infinity} };
-            if (name === "1x 검") return { Z:{name:"⚔️ 베기", mult:10000}, X:{name:"🌪️ 회전", mult:20000}, C:{name:"🗡️ 절단", mult:400000} };
-
-            return { Z:{name:"⚡ 강타", mult:5}, X:{name:"⚔️ 연타", mult:10}, C:{name:"💢 폭주", mult:20} };
-        }
-
-        function updateSkillButtons() {
-            const skills = getWeaponSkillInfo();
-            const skillHTML = (suffix) => `
-                <button class="btn-skill" onclick="useSkill('Z')">${skills.Z.name} (Z)<div class="skill-overlay" id="cdZ${suffix}"></div></button>
-                <button class="btn-skill" onclick="useSkill('X')">${skills.X.name} (X)<div class="skill-overlay" id="cdX${suffix}"></div></button>
-                <button class="btn-skill" onclick="useSkill('C')">${skills.C.name} (C)<div class="skill-overlay" id="cdC${suffix}"></div></button>
-                <button class="btn-skill" id="skillV${suffix}" onclick="useSkill('V')" style="display:${skills.V ? 'block' : 'none'}">${skills.V ? skills.V.name + ' (V)' : ''}<div class="skill-overlay" id="cdV${suffix}"></div></button>
-            `;
-            document.getElementById('battleSkills').innerHTML = skillHTML('');
-            document.getElementById('raidSkills').innerHTML = skillHTML('_R');
-        }
-
-        function useSkill(key) {
-            const now = Date.now(); if (now < skillCD[key]) return; skillCD[key] = now + MAX_CD[key];
-            const ids = [`cd${key}`, `cd${key}_R`]; ids.forEach(id => { const el=document.getElementById(id); if(el){el.style.height="100%";el.offsetHeight;el.style.transition=`height ${MAX_CD[key]}ms linear`;el.style.height="0%";}});
-            let skills = getWeaponSkillInfo(); log(document.getElementById('raidScreen').classList.contains('active') ? 'raid' : 'battle', `${skills[key].name} 발동!`);
-        }
-
-        function drinkPotion() { if(gameData.potions>0){gameData.potions--; playerCurrentHp=playerMaxHp; updateRaidUI(); log('raid',"회복 완료!"); updateUI();} else { log('raid', "물약이 없습니다!"); } }
         function gachaArmor(isAutoMode = false) {
-            const COST = 5000; if (gameData.coins < COST) { if(!isAutoMode) log('town', "돈 부족"); return false; } if (gameData.maxArmorLevel >= 150) { if(!isAutoMode) log('town', "최강 방어구!"); return false; }
+            const COST = 5000; if (gameData.coins < COST) { if(!isAutoMode) log('town', "돈 부족"); return false; } if (gameData.maxArmorLevel >= 2000) { if(!isAutoMode) log('town', "최강 방어구!"); return false; }
             gameData.coins -= COST; if (Math.random() * 100 < 50) { let currentIdx = armorDB.findIndex(a => a.lv === gameData.maxArmorLevel); if (currentIdx < armorDB.length - 1) { let nextArmor = armorDB[currentIdx + 1]; gameData.maxArmorLevel = nextArmor.lv; gameData.equippedArmorLevel = nextArmor.lv; log('town', `🎉 승급! [${nextArmor.name}]`); renderArmorInventory(); updateUI(); } } else { if(!isAutoMode) log('town', "꽝..."); } updateUI(); return true;
         }
-        async function autoGachaArmor() { if(isAutoArmor) { isAutoArmor = false; document.getElementById('btnAutoArmor').innerText = "🔄 방어구 연속"; return; } isAutoArmor = true; document.getElementById('btnAutoArmor').innerText = "⏹ 중단"; while(isAutoArmor && gameData.coins >= 5000 && gameData.maxArmorLevel < 150) { gachaArmor(true); await new Promise(r => setTimeout(r, 100)); } isAutoArmor = false; document.getElementById('btnAutoArmor').innerText = "🔄 방어구 연속"; }
-        async function autoEnhance() { if(isAutoWeapon) return; isAutoWeapon = true; document.querySelector('.btn-auto').innerText = "⏹"; while(isAutoWeapon && gameData.coins >= 100 && gameData.weaponLevel < 499) { enhanceWeapon(); await new Promise(r=>setTimeout(r, 50)); } isAutoWeapon = false; document.querySelector('.btn-auto').innerText = "⚡ 연속강화"; saveGame(); }
-        
+        async function autoGachaArmor() { if(isAutoArmor) { isAutoArmor = false; document.getElementById('btnAutoArmor').innerText = "🔄 방어구 연속"; return; } isAutoArmor = true; document.getElementById('btnAutoArmor').innerText = "⏹ 중단"; while(isAutoArmor && gameData.coins >= 5000 && gameData.maxArmorLevel < 2000) { gachaArmor(true); await new Promise(r => setTimeout(r, 100)); } isAutoArmor = false; document.getElementById('btnAutoArmor').innerText = "🔄 방어구 연속"; }
+        async function autoEnhance() { if(isAutoWeapon) return; isAutoWeapon = true; document.querySelector('.btn-auto').innerText = "⏹"; while(isAutoWeapon && gameData.coins >= 100 && gameData.weaponLevel < 2000) { enhanceWeapon(); await new Promise(r=>setTimeout(r, 50)); } isAutoWeapon = false; document.querySelector('.btn-auto').innerText = "⚡ 연속강화"; saveGame(); }
+
         function renderWeaponInventory() { 
             const grid = document.getElementById('weaponInventoryGrid'); grid.innerHTML = ""; 
             weaponDB.forEach(w => createWeaponSlot(grid, w.icon, `Lv.${w.lv}`, gameData.weaponLevel >= w.lv, w.name)); 
+            
             createWeaponSlot(grid, "🔥", "지옥활", gameData.hasHellBow, "지옥의 활"); 
-            createWeaponSlot(grid, "🕸️", "잠자리채", gameData.hasDragonflyNet, "잠자리채"); 
-            createWeaponSlot(grid, "6️⃣7️⃣", "히든", gameData.hasAdminWeapon, "67 무기"); 
             createWeaponSlot(grid, "💀", "사신낫", gameData.hasScythe, "사신의 낫"); 
             createWeaponSlot(grid, "⚔️", "듀얼단검", gameData.hasDualDagger, "듀얼 단검");
-            // 히드라 시리즈
             createWeaponSlot(grid, "🗡️", "H.검", gameData.hasHydraSword, "히드라 검");
             createWeaponSlot(grid, "⚓", "H.닻", gameData.hasHydraAnchor, "히드라 닻");
             createWeaponSlot(grid, "🪓", "H.도끼", gameData.hasHydraAxe, "히드라 도끼");
             createWeaponSlot(grid, "🪄", "H.지팡이", gameData.hasHydraStaff, "히드라 지팡이");
-            
             createWeaponSlot(grid, "🦅", "불사조", gameData.hasPhoenixWing, "불사조 깃털");
             createWeaponSlot(grid, "🃏", "조커카드", gameData.hasJokerCard, "조커 카드");
-            
-            // 1x 시리즈
             createWeaponSlot(grid, "⚔️", "1x 검", gameData.has1xSword, "1x 검");
             createWeaponSlot(grid, "🏹", "1x 활", gameData.has1xBow, "1x 활");
             createWeaponSlot(grid, "💻", "1x PC", gameData.has1xComputer, "1x 컴퓨터");
             createWeaponSlot(grid, "👑", "1x 왕관", gameData.has1xCrown, "1x1x1x 왕관");
-
+            createWeaponSlot(grid, "⚔️💀", "듀얼 낫", gameData.hasDualScythe, "듀얼 낫");
             createWeaponSlot(grid, "🕶️", "검은안대", gameData.hasGojoBlindfold, "검은 안대");
-            // 🔥 스쿠나 손가락 무기
+            
+            createWeaponSlot(grid, "🕸️", "잠자리채", gameData.hasDragonflyNet, "잠자리채"); 
+            createWeaponSlot(grid, "6️⃣7️⃣", "히든", gameData.hasAdminWeapon, "67 무기"); 
             createWeaponSlot(grid, "🧟", "Lv.500", gameData.hasSukunaFinger, "스쿠나의 손가락");
+            createWeaponSlot(grid, "🎸", "글리치", gameData.hasGlitchGuitar, "글리치 기타");
+            createWeaponSlot(grid, "🪚", "전기톱", gameData.hasGlitchChainsaw, "글리치 전기톱");
+
+            createWeaponSlot(grid, "😈", "악마 뿔", gameData.hasDevilHorn, "악마의 뿔");
+            createWeaponSlot(grid, "😇", "천사 링", gameData.hasAngelRing, "천사의 링");
+            createWeaponSlot(grid, "🖐️", "척추 손", gameData.hasSpineHand, "척추 손");
+            createWeaponSlot(grid, "🔮", "신의구슬", gameData.hasGodBead, "신의 구슬");
+
+            createWeaponSlot(grid, "🪭", "D.부채", gameData.hasDragonFan, "드래곤 부채");
+            createWeaponSlot(grid, "🐉", "D.단검", gameData.hasDragonDagger, "드래곤 단검");
+            createWeaponSlot(grid, "👥", "D.클론", gameData.hasDragonClone, "드래곤 클론");
+            createWeaponSlot(grid, "🥓", "D.채찍", gameData.hasDragonWhip, "드래곤 채찍");
+
+            // 크리스마스
+            createWeaponSlot(grid, "🍬", "캔디 낫", gameData.hasCandyScythe, "캔디 낫");
+            createWeaponSlot(grid, "🎋", "캔디 검", gameData.hasCandyKatana, "캔디 카타나");
+            createWeaponSlot(grid, "🍭", "캔디 봉", gameData.hasCandyStaff, "캔디 지팡이");
         }
+
         function createWeaponSlot(parent, icon, text, unlock, skinName) { let div = document.createElement('div'); div.className = "inv-slot"; if(!unlock) { div.classList.add('locked'); div.innerHTML = "🔒"; } else { div.innerHTML = `<div class="slot-icon">${icon}</div><div class="slot-lv">${text}</div>`; div.onclick = () => { gameData.equippedSkinName = skinName; renderWeaponInventory(); updateUI(); }; if(getCurrentDisplayWeapon().name === skinName) div.classList.add('selected'); } parent.appendChild(div); }
-        function renderArmorInventory() { const grid = document.getElementById('armorInventoryGrid'); grid.innerHTML = ""; armorDB.forEach(a => { let div = document.createElement('div'); div.className = "inv-slot"; let unlock = gameData.maxArmorLevel >= a.lv; if(!unlock) { div.classList.add('locked'); div.innerHTML = "🔒"; } else { div.innerHTML = `<div class="slot-icon">${a.icon}</div><div class="slot-lv">Lv.${a.lv}</div>`; div.onclick = () => { gameData.equippedArmorLevel = a.lv; renderArmorInventory(); updateUI(); }; if(gameData.equippedArmorLevel === a.lv) div.classList.add('selected'); } grid.appendChild(div); }); }
+        
+        function renderArmorInventory() { 
+            const grid = document.getElementById('armorInventoryGrid'); grid.innerHTML = ""; 
+            armorDB.forEach(a => { 
+                let div = document.createElement('div'); div.className = "inv-slot"; 
+                let unlock = gameData.maxArmorLevel >= a.lv; 
+                if(!unlock) { div.classList.add('locked'); div.innerHTML = "🔒"; } 
+                else { 
+                    div.innerHTML = `<div class="slot-icon">${a.icon}</div><div class="slot-lv">Lv.${a.lv}</div>`; 
+                    div.onclick = () => { gameData.equippedArmorLevel = a.lv; gameData.equippedArmorName = a.name; renderArmorInventory(); updateUI(); }; 
+                    if(gameData.equippedArmorLevel === a.lv && gameData.equippedArmorName !== "가시 갑옷" && gameData.equippedArmorName !== "드래곤 헤드") div.classList.add('selected'); 
+                } 
+                grid.appendChild(div); 
+            }); 
+            let div = document.createElement('div'); div.className = "inv-slot";
+            if(!gameData.hasThornArmor) { div.classList.add('locked'); div.innerHTML = "🔒"; }
+            else {
+                div.innerHTML = `<div class="slot-icon">🌵</div><div class="slot-lv">가시</div>`;
+                div.onclick = () => { gameData.equippedArmorName = "가시 갑옷"; renderArmorInventory(); updateUI(); };
+                if(gameData.equippedArmorName === "가시 갑옷") div.classList.add('selected');
+            }
+            grid.appendChild(div);
+
+            let div2 = document.createElement('div'); div2.className = "inv-slot";
+            if(!gameData.hasDragonHead) { div2.classList.add('locked'); div2.innerHTML = "🔒"; }
+            else {
+                div2.innerHTML = `<div class="slot-icon">🐲</div><div class="slot-lv">D.Head</div>`;
+                div2.onclick = () => { gameData.equippedArmorName = "드래곤 헤드"; renderArmorInventory(); updateUI(); };
+                if(gameData.equippedArmorName === "드래곤 헤드") div2.classList.add('selected');
+            }
+            grid.appendChild(div2);
+        }
         
         function updateUI() { 
             document.getElementById('coinDisplay').innerText = Math.floor(gameData.coins).toLocaleString(); 
             document.getElementById('potionDisplay').innerText = gameData.potions; 
+            document.getElementById('potionAtkDisplay').innerText = gameData.damagePotions; 
+            document.getElementById('potionDefDisplay').innerText = gameData.defensePotions; 
             document.getElementById('prisonDisplay').innerText = gameData.prisonRealm; 
             document.getElementById('fingerDisplay').innerText = gameData.sukunaFingers;
+            document.getElementById('ticketDisplay').innerText = gameData.raidTickets; 
             
-            // 손가락 먹기 버튼 표시
-            if(gameData.sukunaFingers > 0) document.getElementById('btnEatFinger').style.display = 'block';
-            else document.getElementById('btnEatFinger').style.display = 'none';
+            // 날개 버튼
+            if(gameData.hasDragonWing) document.getElementById('btnWingUse').style.display = 'inline-block';
+            else document.getElementById('btnWingUse').style.display = 'none';
 
-            let wInfo = getCurrentDisplayWeapon(); document.getElementById('townWeaponIcon').innerText = wInfo.icon; document.getElementById('weaponStatus').innerText = `${wInfo.name}`; let aInfo = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0]; document.getElementById('townArmorIcon').innerText = aInfo.icon; document.getElementById('armorStatus').innerText = aInfo.name; 
+            if(gameData.sukunaFingers > 0) document.getElementById('btnEatFinger').style.display = 'block'; else document.getElementById('btnEatFinger').style.display = 'none';
+            let wInfo = getCurrentDisplayWeapon(); document.getElementById('townWeaponIcon').innerText = wInfo.icon; document.getElementById('weaponStatus').innerText = `${wInfo.name}`; 
+            
+            let aName = gameData.equippedArmorName;
+            if(!aName) {
+                let aInfo = armorDB.find(a => a.lv === gameData.equippedArmorLevel) || armorDB[0]; 
+                aName = aInfo.name;
+            }
+            document.getElementById('townArmorIcon').innerText = "👕"; 
+            if(aName === "가시 갑옷") document.getElementById('townArmorIcon').innerText = "🌵";
+            if(aName === "드래곤 헤드") document.getElementById('townArmorIcon').innerText = "🐲";
+            document.getElementById('armorStatus').innerText = aName; 
         }
         function updateRaidUI() { document.getElementById('raidHpBar').style.width = (raidHp / raidMaxHp)*100 + "%"; document.getElementById('raidHpText').innerText = raidHp.toLocaleString(); document.getElementById('playerHpBar').style.width = (playerCurrentHp / playerMaxHp)*100 + "%"; document.getElementById('playerHpText').innerText = `${playerCurrentHp.toLocaleString()} / ${playerMaxHp.toLocaleString()}`; }
         
         function getCurrentDisplayWeapon() { 
             if(gameData.equippedSkinName) { 
-                if(gameData.equippedSkinName==="스쿠나의 손가락" && gameData.hasSukunaFinger) return {name:"스쿠나의 손가락", icon:"🧟"};
+                if(gameData.equippedSkinName==="드래곤 단검" && gameData.hasDragonDagger) return {name:"드래곤 단검", icon:"🐉"};
+                if(gameData.equippedSkinName==="드래곤 클론" && gameData.hasDragonClone) return {name:"드래곤 클론", icon:"👥"};
+                if(gameData.equippedSkinName==="드래곤 채찍" && gameData.hasDragonWhip) return {name:"드래곤 채찍", icon:"🥓"};
+                if(gameData.equippedSkinName==="드래곤 부채" && gameData.hasDragonFan) return {name:"드래곤 부채", icon:"🪭"};
 
+                if(gameData.equippedSkinName==="캔디 낫" && gameData.hasCandyScythe) return {name:"캔디 낫", icon:"🍬"};
+                if(gameData.equippedSkinName==="캔디 카타나" && gameData.hasCandyKatana) return {name:"캔디 카타나", icon:"🎋"};
+                if(gameData.equippedSkinName==="캔디 지팡이" && gameData.hasCandyStaff) return {name:"캔디 지팡이", icon:"🍭"};
+
+                if(gameData.equippedSkinName==="신의 구슬" && gameData.hasGodBead) return {name:"신의 구슬", icon:"🔮"};
+                if(gameData.equippedSkinName==="악마의 뿔" && gameData.hasDevilHorn) return {name:"악마의 뿔", icon:"😈"};
+                if(gameData.equippedSkinName==="천사의 링" && gameData.hasAngelRing) return {name:"천사의 링", icon:"😇"};
+                if(gameData.equippedSkinName==="척추 손" && gameData.hasSpineHand) return {name:"척추 손", icon:"🖐️"};
+                
+                if(gameData.equippedSkinName==="글리치 기타" && gameData.hasGlitchGuitar) return {name:"글리치 기타", icon:"🎸"};
+                if(gameData.equippedSkinName==="글리치 전기톱" && gameData.hasGlitchChainsaw) return {name:"글리치 전기톱", icon:"🪚"};
+                if(gameData.equippedSkinName==="스쿠나의 손가락" && gameData.hasSukunaFinger) return {name:"스쿠나의 손가락", icon:"🧟"};
                 if(gameData.equippedSkinName==="검은 안대" && gameData.hasGojoBlindfold) return {name:"검은 안대", icon:"🕶️"};
+                if(gameData.equippedSkinName==="듀얼 낫" && gameData.hasDualScythe) return {name:"듀얼 낫", icon:"⚔️💀"};
                 if(gameData.equippedSkinName==="1x1x1x 왕관" && gameData.has1xCrown) return {name:"1x1x1x 왕관", icon:"👑"};
                 if(gameData.equippedSkinName==="1x 검" && gameData.has1xSword) return {name:"1x 검", icon:"⚔️"};
                 if(gameData.equippedSkinName==="1x 활" && gameData.has1xBow) return {name:"1x 활", icon:"🏹"};
                 if(gameData.equippedSkinName==="1x 컴퓨터" && gameData.has1xComputer) return {name:"1x 컴퓨터", icon:"💻"};
-
                 if(gameData.equippedSkinName==="조커 카드" && gameData.hasJokerCard) return {name:"조커 카드", icon:"🃏"};
                 if(gameData.equippedSkinName==="불사조 깃털" && gameData.hasPhoenixWing) return {name:"불사조 깃털", icon:"🦅"};
                 if(gameData.equippedSkinName==="잠자리채" && gameData.hasDragonflyNet) return {name:"잠자리채", icon:"🕸️"}; 
-                
                 if(gameData.equippedSkinName==="히드라 검" && gameData.hasHydraSword) return {name:"히드라 검", icon:"🗡️"};
                 if(gameData.equippedSkinName==="히드라 닻" && gameData.hasHydraAnchor) return {name:"히드라 닻", icon:"⚓"};
                 if(gameData.equippedSkinName==="히드라 도끼" && gameData.hasHydraAxe) return {name:"히드라 도끼", icon:"🪓"};
                 if(gameData.equippedSkinName==="히드라 지팡이" && gameData.hasHydraStaff) return {name:"히드라 지팡이", icon:"🪄"};
-
                 if(gameData.equippedSkinName==="듀얼 단검" && gameData.hasDualDagger) return {name:"듀얼 단검", icon:"⚔️"};
                 if(gameData.equippedSkinName==="사신의 낫" && gameData.hasScythe) return {name:"사신의 낫", icon:"💀"};
                 if(gameData.equippedSkinName==="67 무기" && gameData.hasAdminWeapon) return {name:"67 무기", icon:"6️⃣7️⃣"};
@@ -743,36 +1340,56 @@
         
         function toggleMode() { 
             const body = document.body;
-            if(body.classList.contains("mode-pc")) {
-                body.classList.remove("mode-pc");
-                body.classList.add("mode-mobile");
-            } else {
-                body.classList.remove("mode-mobile");
-                body.classList.add("mode-pc");
-            }
+            if(body.classList.contains("mode-pc")) { body.classList.remove("mode-pc"); body.classList.add("mode-mobile"); } 
+            else { body.classList.remove("mode-mobile"); body.classList.add("mode-pc"); }
         }
         
-        function changeScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function changeScreen(id) { 
+            document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); 
+            if(id === 'townScreen') setMusic('town'); else if(id === 'fieldScreen') setMusic('field'); else if(id === 'dungeonScreen') {
+                if(dungeonMode === 'christmas') setMusic('christmas'); else setMusic('dungeon');
+            } else if(id === 'raidScreen') setMusic('raid');
+            if(id !== 'fieldScreen' && id !== 'dungeonScreen' && autoAttackInterval) toggleAutoAttack(false);
+        }
         function log(t,m) { document.getElementById(t+"Log").innerText = m; }
         function goToField() { changeScreen('fieldScreen'); spawnMonster(); updateSkillButtons(); }
-        function spawnMonster() { document.getElementById('attackBtn').style.display = 'inline-block'; document.getElementById('nextMonsterBtn').style.display = 'none'; let target = monsters[0]; for(let i=monsters.length-1; i>=0; i--) { if(gameData.weaponLevel >= monsters[i].level) { target=monsters[i]; break; } } document.getElementById('monsterIcon').innerText = target.icon; document.getElementById('monsterInfo').innerText = `Lv.${target.level} ${target.name}`; }
+        
+        function spawnMonster() { 
+            document.getElementById('attackBtn').style.display = 'inline-block'; 
+            document.getElementById('nextMonsterBtn').style.display = 'none'; 
+            
+            let target = monsters[0];
+            for(let i = monsters.length-1; i >= 0; i--) { 
+                if(gameData.weaponLevel >= monsters[i].level) { 
+                    target = monsters[i]; 
+                    break; 
+                } 
+            } 
+            document.getElementById('monsterIcon').innerText = target.icon; 
+            document.getElementById('monsterInfo').innerText = `Lv.${target.level} ${target.name}`; 
+        }
+
         function attackMonster() { 
             let dmg = calculateDamage(); gameData.coins += 100 + Math.floor(dmg / 10); 
-            let weapon = getCurrentDisplayWeapon();
-            if (weapon.name.includes("히드라")) {
-                let lifesteal = Math.floor(dmg * 0.05); if(lifesteal > 0) { playerCurrentHp += lifesteal; if(playerCurrentHp > playerMaxHp) playerCurrentHp = playerMaxHp; }
-            }
-            log('battle', `공격! ${dmg.toLocaleString()}`);
+            let weapon = getCurrentDisplayWeapon(); if (weapon.name.includes("히드라")) { let lifesteal = Math.floor(dmg * 0.05); if(lifesteal > 0) { playerCurrentHp += lifesteal; if(playerCurrentHp > playerMaxHp) playerCurrentHp = playerMaxHp; } }
+            if(Math.random() < 0.1) { let pName = dropRandomPotion(); log('battle', `+${pName}`); }
+            
+            if (Math.random() < 0.3) { gameData.raidTickets++; log('battle', "🎟️ 티켓 획득!"); }
+
+            else log('battle', `공격! ${dmg.toLocaleString()}`); 
+            AudioEngine.sfx.attack();
             document.getElementById('attackBtn').style.display = 'none'; document.getElementById('nextMonsterBtn').style.display = 'inline-block'; updateUI(); 
         }
-        function chopWood() { gameData.coins+=500; updateUI(); log('forest',"+500 G"); }
+        function chopWood() { gameData.coins+=500; updateUI(); log('forest',"+500 G"); AudioEngine.sfx.hit(); }
 
         document.addEventListener('keydown', (e) => {
             if(e.key.toUpperCase() === 'V') useSkill('V');
             if(e.key.toUpperCase() === 'Z') useSkill('Z');
             if(e.key.toUpperCase() === 'X') useSkill('X');
             if(e.key.toUpperCase() === 'C') useSkill('C');
+            if(e.key.toUpperCase() === 'B') useSkill('B'); 
         });
+        
         loadGame();
     </script>
 </body>
